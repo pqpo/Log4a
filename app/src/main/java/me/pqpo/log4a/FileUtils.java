@@ -1,0 +1,24 @@
+package me.pqpo.log4a;
+
+import android.content.Context;
+
+import java.io.File;
+
+/**
+ * Created by pqpo on 2017/11/21.
+ */
+
+public class FileUtils {
+
+    public static File getLogDir(Context context) {
+        File log = context.getExternalFilesDir("log");
+        if (log == null) {
+            log = new File(context.getFilesDir(), "log");
+        }
+        if (!log.exists()) {
+            log.mkdir();
+        }
+        return log;
+    }
+
+}
