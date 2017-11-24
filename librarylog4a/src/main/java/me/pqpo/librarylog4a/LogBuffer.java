@@ -57,16 +57,6 @@ public class LogBuffer {
         }
     }
 
-    public void flushImmediately() {
-        if (ptr != 0) {
-            try {
-                flushImmediatelyNative(ptr);
-            }catch (Exception e) {
-                Log.e(TAG, Log4a.getStackTraceString(e));
-            }
-        }
-    }
-
     public void release() {
         if (ptr != 0) {
             try {
@@ -87,8 +77,6 @@ public class LogBuffer {
     private native void writeNative(long ptr, String log);
 
     private native void flushAsyncNative(long ptr);
-
-    private native void flushImmediatelyNative(long ptr);
 
     private native void releaseNative(long ptr);
 

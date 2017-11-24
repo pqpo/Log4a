@@ -50,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 int threads = Integer.valueOf(etThread.getText().toString());
-                if (threads > 100) {
-                    Toast.makeText(getApplicationContext(), "Do not exceed 50 threads", Toast.LENGTH_SHORT).show();
+                if (threads > 200) {
+                    Toast.makeText(getApplicationContext(), "Do not exceed 200 threads", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 final String str = etContent.getText().toString();
