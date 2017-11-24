@@ -1,11 +1,16 @@
 package me.pqpo.librarylog4a.appender;
 
 
+import android.content.Context;
+import android.os.Environment;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import me.pqpo.librarylog4a.Level;
 import me.pqpo.librarylog4a.LogBuffer;
+import me.pqpo.librarylog4a.formatter.Formatter;
 import me.pqpo.librarylog4a.interceptor.Interceptor;
 
 /**
@@ -15,12 +20,7 @@ public class FileAppender extends AbsAppender {
 
     private LogBuffer logBuffer;
 
-    private Formatter defaultFormatter = new Formatter() {
-        @Override
-        public String format(int logLevel, String tag, String msg) {
-            return String.format("%s/%s: %s\n",  Level.getShortLevelName(logLevel), tag, msg);
-        }
-    };
+    private Formatter formatter;
 
     protected FileAppender(Builder builder) {
         logBuffer = new LogBuffer(builder.bufferFilePath, builder.bufferSize, builder.logFilePath);
@@ -44,13 +44,13 @@ public class FileAppender extends AbsAppender {
 
     public void setFormatter(Formatter formatter) {
         if (formatter != null) {
-            this.defaultFormatter = formatter;
+            this.formatter = formatter;
         }
     }
 
     @Override
     void doAppend(int logLevel, String tag, String msg) {
-        logBuffer.write(defaultFormatter.format(logLevel, tag, msg));
+        logBuffer.write(formatter.format(logLevel, tag, msg));
     }
 
     @Override
@@ -67,12 +67,18 @@ public class FileAppender extends AbsAppender {
 
     public static class Builder {
 
+        private Context context;
+
         private String bufferFilePath;
         private String logFilePath;
-        private int bufferSize;
+        private int bufferSize = 4096;
         private int level = Level.VERBOSE;
         private List<Interceptor> interceptors;
         private Formatter formatter;
+
+        public Builder(Context context) {
+            this.context = context;
+        }
 
         public Builder setBufferSize(int bufferSize) {
             this.bufferSize = bufferSize;
@@ -108,13 +114,37 @@ public class FileAppender extends AbsAppender {
         }
 
         public FileAppender create() {
+            if (logFilePath == null) {
+                throw new IllegalArgumentException("logFilePath cannot be null");
+            }
+            if (bufferFilePath == null) {
+                bufferFilePath = getDefaultBufferPath(context);
+            }
+            if (formatter == null) {
+                formatter = new Formatter() {
+                    @Override
+                    public String format(int logLevel, String tag, String msg) {
+                        return String.format("%s/%s: %s\n",  Level.getShortLevelName(logLevel), tag, msg);
+                    }
+                };
+            }
             return new FileAppender(this);
         }
 
-    }
+        private String getDefaultBufferPath(Context context) {
+            File bufferFile;
+            if (Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED)
+                    && context.getExternalFilesDir("log4a") != null) {
+                bufferFile = context.getExternalFilesDir("log4a");
+            } else {
+                bufferFile = new File(context.getFilesDir(), "log4a");
+            }
+            if (bufferFile != null && !bufferFile.exists()) {
+                bufferFile.mkdirs();
+            }
+            return new File(bufferFile, ".log4aCache").getAbsolutePath();
+        }
 
-    public interface Formatter {
-        String format(int logLevel, String tag, String msg);
     }
 
 }

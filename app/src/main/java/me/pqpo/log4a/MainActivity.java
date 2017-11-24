@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         etThread = findViewById(R.id.et_thread);
         etContent = findViewById(R.id.et_content);
         btnWrite = findViewById(R.id.btn_write);

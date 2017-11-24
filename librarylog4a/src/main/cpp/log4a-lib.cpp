@@ -5,14 +5,14 @@
 
 #include "includes/LogBuffer.h"
 
+static const char* const kClassDocScanner = "me/pqpo/librarylog4a/LogBuffer";
+
 static char* openMMap(int buffer_fd, size_t buffer_size);
 
 static AsyncFileFlush *fileFlush = nullptr;
 
-extern "C"
-JNIEXPORT jlong JNICALL
-Java_me_pqpo_librarylog4a_LogBuffer_initNative(JNIEnv *env, jclass type, jstring buffer_path_,
-                                              jint capacity, jstring log_path_) {
+static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
+           jint capacity, jstring log_path_) {
     const char *buffer_path = env->GetStringUTFChars(buffer_path_, 0);
     const char *log_path = env->GetStringUTFChars(log_path_, 0);
     const size_t buffer_size = static_cast<size_t>(capacity);
@@ -36,7 +36,7 @@ Java_me_pqpo_librarylog4a_LogBuffer_initNative(JNIEnv *env, jclass type, jstring
     return reinterpret_cast<long>(logBuffer);
 }
 
-char* openMMap(int buffer_fd, size_t buffer_size) {
+static char* openMMap(int buffer_fd, size_t buffer_size) {
     char* map_ptr = nullptr;
     if (buffer_fd != -1) {
         struct stat fileInfo;
@@ -62,10 +62,8 @@ char* openMMap(int buffer_fd, size_t buffer_size) {
     return map_ptr;
 }
 
-extern "C"
-JNIEXPORT void JNICALL
-Java_me_pqpo_librarylog4a_LogBuffer_writeNative(JNIEnv *env, jobject instance, jlong ptr,
-                                                jstring log_) {
+static void writeNative(JNIEnv *env, jobject instance, jlong ptr,
+            jstring log_) {
     const char *log = env->GetStringUTFChars(log_, 0);
     LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
     size_t log_size = strlen(log);
@@ -76,20 +74,59 @@ Java_me_pqpo_librarylog4a_LogBuffer_writeNative(JNIEnv *env, jobject instance, j
     env->ReleaseStringUTFChars(log_, log);
 }
 
-extern "C"
-JNIEXPORT void JNICALL
-Java_me_pqpo_librarylog4a_LogBuffer_releaseNative(JNIEnv *env, jobject instance, jlong ptr) {
+static void releaseNative(JNIEnv *env, jobject instance, jlong ptr) {
     LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
     logBuffer->async_flush(fileFlush);
     delete logBuffer;
     if (fileFlush != nullptr) {
         delete fileFlush;
     }
+    fileFlush = nullptr;
 }
 
-extern "C"
-JNIEXPORT void JNICALL
-Java_me_pqpo_librarylog4a_LogBuffer_flushAsyncNative(JNIEnv *env, jobject instance, jlong ptr) {
+static void  flushAsyncNative(JNIEnv *env, jobject instance, jlong ptr) {
     LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
     logBuffer->async_flush(fileFlush);
+}
+
+static JNINativeMethod gMethods[] = {
+
+        {
+                "initNative",
+                "(Ljava/lang/String;ILjava/lang/String;)J",
+                (void*)initNative
+        },
+
+        {
+                "writeNative",
+                "(JLjava/lang/String;)V",
+                 (void*)writeNative
+        },
+
+        {
+                "flushAsyncNative",
+                "(J)V",
+                (void*)flushAsyncNative
+        },
+
+        {
+                "releaseNative",
+                "(J)V",
+                (void*)releaseNative
+        }
+
+};
+
+extern "C"
+JNIEXPORT jint JNICALL
+JNI_OnLoad(JavaVM* vm, void* reserved) {
+    JNIEnv *env = NULL;
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
+        return JNI_FALSE;
+    }
+    jclass classDocScanner = env->FindClass(kClassDocScanner);
+    if(env -> RegisterNatives(classDocScanner, gMethods, sizeof(gMethods)/ sizeof(gMethods[0])) < 0) {
+        return JNI_FALSE;
+    }
+    return JNI_VERSION_1_4;
 }

@@ -76,8 +76,9 @@ public class Log4a {
 
     public static void release() {
         if (sLoggerDelegate != null) {
-            sLoggerDelegate.flush();
+            sLoggerDelegate.release();
         }
+        sLoggerDelegate = null;
     }
 
     public static String getStackTraceString(Throwable tr) {
