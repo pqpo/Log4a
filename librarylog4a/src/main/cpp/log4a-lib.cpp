@@ -5,7 +5,7 @@
 
 #include "includes/LogBuffer.h"
 
-char *buildMmap(int buffer_fd, const size_t buffer_size, int log_fd);
+static char* openMMap(int buffer_fd, size_t buffer_size);
 
 static AsyncFileFlush *fileFlush = nullptr;
 
@@ -22,10 +22,9 @@ Java_me_pqpo_librarylog4a_LogBuffer_initNative(JNIEnv *env, jclass type, jstring
     if (fileFlush == nullptr) {
         fileFlush = new AsyncFileFlush(log_fd);
     }
-
+    char *buffer_ptr = openMMap(buffer_fd, buffer_size);
     bool map_buffer = true;
-    char *buffer_ptr = buildMmap(buffer_fd, buffer_size);
-    if(buffer_ptr == nullptr || buffer_ptr == MAP_FAILED) {
+    if(buffer_ptr == nullptr) {
         buffer_ptr = new char[capacity];
         memset(buffer_ptr, '\0',buffer_size);
         map_buffer = false;
@@ -37,29 +36,30 @@ Java_me_pqpo_librarylog4a_LogBuffer_initNative(JNIEnv *env, jclass type, jstring
     return reinterpret_cast<long>(logBuffer);
 }
 
-char *buildMmap(int buffer_fd, size_t buffer_size) {
-    if(buffer_fd == -1) {
-        return nullptr;
-    }
-    struct stat fileInfo;
-    if(fstat(buffer_fd, &fileInfo) >= 0) {
-        size_t buffered_size = static_cast<size_t>(fileInfo.st_size);
-        if(buffered_size > 0) {
-            char *buffer_ptr_tmp = (char *) mmap(0, buffered_size, PROT_WRITE | PROT_READ, MAP_SHARED, buffer_fd, 0);
-            if (buffer_ptr_tmp != MAP_FAILED) {
-                LogBuffer tmp(buffer_ptr_tmp, buffered_size);
-                tmp.async_flush(fileFlush);
+char* openMMap(int buffer_fd, size_t buffer_size) {
+    char* map_ptr = nullptr;
+    if (buffer_fd != -1) {
+        struct stat fileInfo;
+        if(fstat(buffer_fd, &fileInfo) >= 0) {
+            size_t buffered_size = static_cast<size_t>(fileInfo.st_size);
+            if(buffered_size > 0) {
+                char *buffer_ptr_tmp = (char *) mmap(0, buffered_size, PROT_WRITE | PROT_READ, MAP_SHARED, buffer_fd, 0);
+                if (buffer_ptr_tmp != MAP_FAILED) {
+                    LogBuffer tmp(buffer_ptr_tmp, buffered_size);
+                    tmp.async_flush(fileFlush);
+                }
             }
         }
+        ftruncate(buffer_fd, (int)(buffer_size));
+        lseek(buffer_fd, 0, SEEK_SET);
+        map_ptr = (char *) mmap(0, buffer_size, PROT_WRITE | PROT_READ, MAP_SHARED, buffer_fd, 0);
+        if (map_ptr != MAP_FAILED) {
+            memset(map_ptr, '\0', buffer_size);
+        } else{
+            map_ptr = nullptr;
+        }
     }
-    ftruncate(buffer_fd, (int)(buffer_size));
-    lseek(buffer_fd, 0, SEEK_SET);
-    char* zero_data = new char[buffer_size];
-    memset(zero_data, '\0', buffer_size);
-    write(buffer_fd, zero_data, buffer_size);
-    lseek(buffer_fd, 0, SEEK_SET);
-    delete[] zero_data;
-    return (char *) mmap(0, buffer_size, PROT_WRITE | PROT_READ, MAP_SHARED, buffer_fd, 0);
+    return map_ptr;
 }
 
 extern "C"
