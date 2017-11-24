@@ -17,7 +17,7 @@ public class AndroidAppender extends AbsAppender {
     }
 
     @Override
-    void doAppend(int logLevel, String tag, String msg) {
+    protected void doAppend(int logLevel, String tag, String msg) {
         android.util.Log.println(logLevel, tag, msg);
     }
 

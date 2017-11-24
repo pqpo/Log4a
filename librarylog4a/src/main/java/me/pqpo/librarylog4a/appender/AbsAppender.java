@@ -74,7 +74,7 @@ public abstract class AbsAppender implements Appender {
         }
     }
 
-    abstract void doAppend(int logLevel, String tag, String msg);
+    protected abstract void doAppend(int logLevel, String tag, String msg);
 
     @Override
     public void flush() {

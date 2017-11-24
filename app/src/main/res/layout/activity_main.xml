@@ -14,6 +14,16 @@
         android:orientation="vertical"
         tools:context="me.pqpo.log4a.MainActivity">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:text="Multi-threaded Testing"
+            android:padding="10dp"
+            android:textColor="@android:color/black"
+            android:textSize="20dp"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -68,6 +78,7 @@
             android:layout_height="wrap_content"
             android:text="Performance Testing"
             android:padding="10dp"
+            android:layout_marginTop="20dp"
             android:textColor="@android:color/black"
             android:textSize="20dp"/>
 
@@ -78,38 +89,20 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:text="log times for test:"/>
+
             <EditText
                 android:id="@+id/et_times"
-                android:layout_width="100dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="10000"
                 android:inputType="number"/>
-
-            <RadioGroup
-                android:id="@+id/rg_log"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="15dp"
-                android:paddingRight="15dp"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/rb_log4a"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:checked="true"
-                    android:layout_height="wrap_content"
-                    android:text="Log4a"/>
-
-                <RadioButton
-                    android:id="@+id/rb_android_log"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Log"/>
-
-            </RadioGroup>
 
         </LinearLayout>
 
@@ -120,11 +113,22 @@
             android:text="test"/>
 
         <TextView
-            android:id="@+id/tv_test"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Hello World!"
+            android:textSize="18sp"
+            android:text="result:"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:text="log4a"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"

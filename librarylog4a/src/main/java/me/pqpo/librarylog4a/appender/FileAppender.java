@@ -49,7 +49,7 @@ public class FileAppender extends AbsAppender {
     }
 
     @Override
-    void doAppend(int logLevel, String tag, String msg) {
+    protected void doAppend(int logLevel, String tag, String msg) {
         logBuffer.write(formatter.format(logLevel, tag, msg));
     }
 
