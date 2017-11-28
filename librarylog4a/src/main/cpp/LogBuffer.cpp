@@ -7,6 +7,7 @@
 LogBuffer::LogBuffer(char *ptr, size_t capacity):
         buffer_ptr(ptr),
         buffer_capacity(capacity) {
+    offset = strlen(ptr);
 }
 
 LogBuffer::~LogBuffer() {
@@ -22,7 +23,7 @@ size_t LogBuffer::capacity() {
 }
 
 size_t LogBuffer::size() {
-    return strlen(ptr());
+    return offset;
 }
 
 char *LogBuffer::dataCopy() {
@@ -38,7 +39,8 @@ size_t LogBuffer::append(const char *log) {
     size_t len = strlen(log);
     size_t freeSize = emptySize();
     size_t writeSize = len <= freeSize ? len : freeSize;
-    memcpy(ptr() + size(), log, writeSize);
+    memcpy(ptr() + offset, log, writeSize);
+    offset += writeSize;
     return writeSize;
 }
 
@@ -55,6 +57,7 @@ void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
 void LogBuffer::clear() {
     std::lock_guard<std::recursive_mutex> lck_clear(log_mtx);
     memset(ptr(), '\0', capacity());
+    offset = 0;
 }
 
 void LogBuffer::release() {

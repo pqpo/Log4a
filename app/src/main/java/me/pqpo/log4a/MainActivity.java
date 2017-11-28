@@ -9,9 +9,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -23,6 +20,8 @@ import me.pqpo.librarylog4a.appender.AbsAppender;
 import me.pqpo.librarylog4a.appender.AndroidAppender;
 import me.pqpo.librarylog4a.appender.Appender;
 import me.pqpo.librarylog4a.appender.FileAppender;
+
+import static me.pqpo.log4a.LogInit.BUFFER_SIZE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -101,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
 
         logger.addAppender(createLog4aFileAppender());
         doPerformanceTest("log4a" ,times);
-//        logger.flush();
         Log4a.release();
 
         Log4a.setLogger(logger);
@@ -110,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         Log4a.release();
 
         Log4a.setLogger(logger);
-        List<String> buffer = new ArrayList<>();
+        List<String> buffer = new ArrayList<>(times);
         logger.addAppender(createMemAppender(buffer));
         doPerformanceTest("array list log" ,times);
         buffer.clear();
@@ -126,28 +124,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Appender createFileAppender() {
-        File log = FileUtils.getLogDir(this);
-        File logFile = new File(log, "logFileTest.txt");
+        File logFile = new File(FileUtils.getLogDir(this), "logFileTest.txt");
         logFile.delete();
-        OutputStream os = null;
-        try {
-            logFile.createNewFile();
-            os = new FileOutputStream(logFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        final OutputStream oss = os;
-        return new AbsAppender() {
-            @Override
-            protected void doAppend(int logLevel, String tag, String msg) {
-                String logStr = String.format("%s/%s: %s\n", Level.getShortLevelName(logLevel), tag, msg);
-                try {
-                    oss.write(logStr.getBytes());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
+        return new NoBufferFileAppender(logFile);
     }
 
     private Appender createMemAppender(final List<String> buffer) {
@@ -167,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
         logFile.delete();
         FileAppender.Builder fileBuild = new FileAppender.Builder(this)
                 .setLogFilePath(logFile.getAbsolutePath())
+                .setBufferSize(BUFFER_SIZE)
                 .setBufferFilePath(cacheFile.getAbsolutePath());
         return fileBuild.create();
     }

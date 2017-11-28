@@ -35,10 +35,9 @@ public:
     bool map_buffer = true;
 
 private:
+    size_t offset = 0;
     char* buffer_ptr = nullptr;
     size_t buffer_capacity = 0;
-    int log_file_fd = -1;
-    bool exit = false;
     std::recursive_mutex log_mtx;
 
 };

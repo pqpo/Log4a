@@ -10,12 +10,15 @@ import me.pqpo.librarylog4a.LogData;
 import me.pqpo.librarylog4a.Logger;
 import me.pqpo.librarylog4a.appender.AndroidAppender;
 import me.pqpo.librarylog4a.appender.FileAppender;
+import me.pqpo.librarylog4a.formatter.DateFileFormatter;
 import me.pqpo.librarylog4a.interceptor.Interceptor;
 
 /**
  * Created by pqpo on 2017/11/24.
  */
 public class LogInit {
+
+    public static final int BUFFER_SIZE = 1024 * 400; //400k
 
     public static void init(Context context) {
         int level = Level.DEBUG;
@@ -38,9 +41,10 @@ public class LogInit {
                 .setLevel(level)
                 .addInterceptor(wrapInterceptor)
                 .setBufferFilePath(buffer_path)
-                .setBufferSize(4096);
+                .setFormatter(new DateFileFormatter())
+                .setBufferSize(BUFFER_SIZE);
         Logger logger = new Logger.Builder()
-//                .enableAndroidAppender(androidBuild)
+                .enableAndroidAppender(androidBuild)
                 .enableFileAppender(fileBuild)
                 .create();
         Log4a.setLogger(logger);
