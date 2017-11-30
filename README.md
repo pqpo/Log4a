@@ -67,7 +67,10 @@ Log4a.release();
 你也可以自行下载 [Sample APK](art/log4a_sample_v1.0.0.apk)，在你自己的设备上进行测试。
 
 下面分别是在 google pixel，模拟器和 Moto X 中写1w条日志的测试情况：  
-![](art/pixel1.jpg) ![](art/emulator1.jpg) ![](art/motox1.jpg)
+
+|Google Pixel|Emulator|Moto X|
+|:---:|:---:|:---:|
+|![](art/pixel1.jpg)|![](art/emulator1.jpg)|![](art/motox1.jpg)|
 
 下面是 google pixel 的测试数据表格（按性能排序）：
 
