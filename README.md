@@ -66,11 +66,11 @@ Log4a.release();
 性能测试的代码位于 Sample 中，分别测试了 Log4a, android.util.Log, 直接写内存（将日志内容保存到 ArrayList 中）, 实时写文件, 使用 Buffer 写文件
 你也可以自行下载 [Sample APK](art/log4a_sample_v1.0.0.apk)，在你自己的设备上进行测试。
 
-下面分别是在 google pixel，模拟器和 Moto X 中写1w条日志的测试情况：  
+下面分别是在 google pixel，Moto X 中写1w条日志的测试情况：  
 
-|Google Pixel|Emulator|Moto X|
-|:---:|:---:|:---:|
-|![](art/pixel1.jpg)|![](art/emulator1.jpg)|![](art/motox1.jpg)|
+|Google Pixel|Moto X|
+|:---:|:---:|
+|![](art/pixel1.jpg)|![](art/motox1.jpg)|
 
 下面是 google pixel 的测试数据表格（按性能排序）：
 
