@@ -66,8 +66,8 @@ Log4a.release();
 性能测试的代码位于 Sample 中，分别测试了 Log4a, android.util.Log, 直接写内存（将日志内容保存到 ArrayList 中），实时写文件
 你也可以自行下载 [Sample APK](art/log4a_sample_v1.0.0.apk)，在你自己的设备上进行测试。
 
-下面是在分别是模拟器和 Moto X 2014 老爷机中写1w条日志的测试情况（其中 android.util.Log 打印的日志均不完整，模拟器中打印出4472条，Moto 中打印出 9937 条）：
-![](art/Emulator.jpg)    ![](art/motox.png)
+下面是在分别是模拟器和 Moto X 2014 老爷机中写1w条日志的测试情况（其中 android.util.Log 打印的日志均不完整，模拟器中打印出4472条，Moto 中打印出 9937 条）：  
+![](art/Emulator.jpg) ![](art/motox.png)
 
 对于性能方面基本上可以得出：  
 直接写内存当然是最快的，android.util.Log 次之，然后是 Log4a, 最慢的是实时写文件。
