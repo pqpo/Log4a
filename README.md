@@ -18,23 +18,20 @@ Log4a 使用 mmap 文件映射内存作为缓存，可以在不牺牲性能的�
 
 使用方法与 android.util.Log 一致，不同的是你需要进行简单的配置，当然也预留了丰富的接口供拓展使用，更高级的配置可以查看[Sample](https://github.com/pqpo/Log4a/blob/7d92dc4ad244c8af80d0c5ce6e02d7bff53277b8/app/src/main/java/me/pqpo/log4a/LogInit.java#L23);
 
-1. 根目录的 build.gradle 添加：
+1. 在 build.gradle 文件中添加依赖：
 ```groovy
 allprojects {
-		repositories {
-			maven { url 'https://jitpack.io' }
-		}
+	repositories {
+		maven { url 'https://jitpack.io' }
 	}
-```
-
-2. 添加依赖:
-```groovy
+}
+	
 dependencies {
-	        compile 'com.github.pqpo:Log4a:v1.0.0'
-	}
+    compile 'com.github.pqpo:Log4a:v1.0.0'
+}
 ```
 
-3. 初始化Log4a:
+2. 设置并初始化Log4a:
 ```java
 AndroidAppender.Builder androidBuild = new AndroidAppender.Builder();
 
@@ -51,9 +48,17 @@ Logger logger = new Logger.Builder()
 Log4a.setLogger(logger);
 ```
 
-4. 使用：
+3. 使用方式与 android.util.Log 完全一致：
 ```java
 Log4a.i(TAG, "Hello，Log4a!");
+```
+
+4. 在合适的时间刷新缓存或者释放内存  
+```java
+//在应用退出的时候刷新缓存
+Log4a.flush();
+//如果想要释放内存可以调用下面的方法，内部会调用刷新，下次使用需要重新初始化
+Log4a.release();
 ```
 
 ## 性能测试
@@ -61,14 +66,27 @@ Log4a.i(TAG, "Hello，Log4a!");
 性能测试的代码位于 Sample 中，分别测试了 Log4a, android.util.Log, 直接写内存（将日志内容保存到 ArrayList 中），实时写文件
 你也可以自行下载 [Sample APK](art/log4a_sample_v1.0.0.apk)，在你自己的设备上进行测试。
 
-下面是在模拟器中写1w条日志的测试情况（其中 android.util.Log 打印的日志不完整，此次测量仅打印出4472条）：
-![](art/Emulator.jpg)
-
-下面是在 Moto X 2014 老爷机中写1w条日志的测试情况（其中 android.util.Log 打印的日志不完整，此次测量打印出9937条） ：
-![](art/motox.png)
+下面是在分别是模拟器和 Moto X 2014 老爷机中写1w条日志的测试情况（其中 android.util.Log 打印的日志均不完整，模拟器中打印出4472条，Moto 中打印出 9937 条）：
+![](art/Emulator.jpg)    ![](art/motox.png)
 
 对于性能方面基本上可以得出：  
 直接写内存当然是最快的，android.util.Log 次之，然后是 Log4a, 最慢的是实时写文件。
-
 日志完整性：
 Log4a 与 实时写文件均保存了完整的日志到文件中，android.util.Log 在 Logcat 中且不能保证完整性，也无法持久化到文件中。
+
+## License
+
+    Copyright 2017 pqpo
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+       http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
