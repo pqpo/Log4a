@@ -13,13 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import me.pqpo.librarylog4a.Level;
 import me.pqpo.librarylog4a.Log4a;
 import me.pqpo.librarylog4a.Logger;
 import me.pqpo.librarylog4a.appender.AbsAppender;
 import me.pqpo.librarylog4a.appender.AndroidAppender;
 import me.pqpo.librarylog4a.appender.Appender;
 import me.pqpo.librarylog4a.appender.FileAppender;
+import me.pqpo.librarylog4a.formatter.Formatter;
 
 import static me.pqpo.log4a.LogInit.BUFFER_SIZE;
 
@@ -115,25 +115,36 @@ public class MainActivity extends AppCompatActivity {
         Log4a.release();
 
         Log4a.setLogger(logger);
-        logger.addAppender(createFileAppender());
-        doPerformanceTest("file log" ,times);
+        logger.addAppender(createNoBufferFileAppender());
+        doPerformanceTest("file log(no buffer)" ,times);
+        Log4a.release();
+
+        Log4a.setLogger(logger);
+        logger.addAppender(createWithBufferFileAppender());
+        doPerformanceTest("file log(with buffer)" ,times);
         Log4a.release();
 
         LogInit.init(this);
         tvTest.append("## end");
     }
 
-    private Appender createFileAppender() {
-        File logFile = new File(FileUtils.getLogDir(this), "logFileTest.txt");
+    private Appender createNoBufferFileAppender() {
+        File logFile = new File(FileUtils.getLogDir(this), "logNoBufferFileTest.txt");
         logFile.delete();
         return new NoBufferFileAppender(logFile);
+    }
+
+    private Appender createWithBufferFileAppender() {
+        File logFile = new File(FileUtils.getLogDir(this), "logBufferFileTest.txt");
+        logFile.delete();
+        return new BufferFileAppender(logFile, BUFFER_SIZE);
     }
 
     private Appender createMemAppender(final List<String> buffer) {
         return new AbsAppender() {
             @Override
             protected void doAppend(int logLevel, String tag, String msg) {
-                buffer.add(String.format("%s/%s: %s\n",  Level.getShortLevelName(logLevel), tag, msg));
+                buffer.add(msg);
             }
         };
     }
@@ -147,6 +158,12 @@ public class MainActivity extends AppCompatActivity {
         FileAppender.Builder fileBuild = new FileAppender.Builder(this)
                 .setLogFilePath(logFile.getAbsolutePath())
                 .setBufferSize(BUFFER_SIZE)
+                .setFormatter(new Formatter() {
+                    @Override
+                    public String format(int logLevel, String tag, String msg) {
+                        return msg;
+                    }
+                })
                 .setBufferFilePath(cacheFile.getAbsolutePath());
         return fileBuild.create();
     }

@@ -63,16 +63,36 @@ Log4a.release();
 
 ## 性能测试
 
-性能测试的代码位于 Sample 中，分别测试了 Log4a, android.util.Log, 直接写内存（将日志内容保存到 ArrayList 中），实时写文件
+性能测试的代码位于 Sample 中，分别测试了 Log4a, android.util.Log, 直接写内存（将日志内容保存到 ArrayList 中）, 实时写文件, 使用 Buffer 写文件
 你也可以自行下载 [Sample APK](art/log4a_sample_v1.0.0.apk)，在你自己的设备上进行测试。
 
-下面是在分别是模拟器和 Moto X 2014 老爷机中写1w条日志的测试情况（其中 android.util.Log 打印的日志均不完整，模拟器中打印出4472条，Moto 中打印出 9937 条）：  
-![](art/Emulator.jpg) ![](art/motox.png)
+下面分别是在 google pixel，模拟器和 Moto X 中写1w条日志的测试情况：  
+![](art/pixel1.jpg) ![](art/emulator1.jpg) ![](art/motox1.jpg)
 
-对于性能方面基本上可以得出：  
-直接写内存当然是最快的，android.util.Log 次之，然后是 Log4a, 最慢的是实时写文件。
-日志完整性：
-Log4a 与 实时写文件均保存了完整的日志到文件中，android.util.Log 在 Logcat 中且不能保证完整性，也无法持久化到文件中。
+下面是 google pixel 的测试数据表格（按性能排序）：
+
+|设备|测试类型|消耗时间|日志是否完整|是否持久化|断电后能否保证日志完整|
+|:---:|:---:|:---:|:---:|:---:|:---:|
+|Google Pixel|Mem|13ms|Y|N|N|
+|Google Pixel|Log4a|50ms|Y|Y|Y|
+|Google Pixel|File with Buffer|61ms|Y|Y|N|
+|Google Pixel|Android Log|184ms|N|N|N|
+|Google Pixel|File no Buffer|272ms|Y|Y|Y|
+
+可以看出 Log4a 的写日志性能仅次于直接写内存，与使用 BufferOutputStream 写文件基本保持一致，事实上为了保证多线程安全性， Log4a 在写 mmap 内存的时候都是加锁的，在没锁的情况下可以更靠近直接写内存的速度（有兴趣的可以自行测试）。  
+BufferOutputStream 是将先数据缓存在内存中，之后再刷新进文件的，如果在刷新之前断电了或者强杀了进程，那么内存中的数据就会丢失无法恢复。Log4a 会在下次启动的时候恢复日志文件保证日志的完整性。
+
+---
+
+## 关于我：
+
+- 邮箱：    pqponet@gmail.com
+- GitHub：  [pqpo](https://github.com/pqpo)
+- 博客：    [pqpo's notes](https://pqpo.me)
+- Twitter: [Pqponet](https://twitter.com/Pqponet)
+- 微信公众号: pqpo_me(扫下方二维码) 
+
+<img src="art/qrcode_for_gh.jpg" width="200">
 
 ## License
 

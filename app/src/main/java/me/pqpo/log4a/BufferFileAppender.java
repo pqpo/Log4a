@@ -1,23 +1,25 @@
 package me.pqpo.log4a;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import me.pqpo.librarylog4a.Level;
 import me.pqpo.librarylog4a.appender.AbsAppender;
 
 /**
  * Created by pqpo on 2017/11/28.
  */
-public class NoBufferFileAppender extends AbsAppender {
+public class BufferFileAppender extends AbsAppender {
 
     private File logFile;
-    private OutputStream outputStream;
+    private BufferedOutputStream outputStream;
+    private int bufferSize;
 
-    public NoBufferFileAppender(File logFile) {
+    public BufferFileAppender(File logFile, int bufferSize) {
         this.logFile = logFile;
+        this.bufferSize = bufferSize;
         openFileOutputStream();
     }
 
@@ -27,7 +29,8 @@ public class NoBufferFileAppender extends AbsAppender {
                 if(!logFile.createNewFile()) {
                     return;
                 }
-                outputStream = new FileOutputStream(logFile);
+                FileOutputStream os = new FileOutputStream(logFile);
+                outputStream = new BufferedOutputStream(os, bufferSize);
             } catch (IOException e) {
                 e.printStackTrace();
             }
