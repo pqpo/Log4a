@@ -85,6 +85,11 @@ Log4a.release();
 可以看出 Log4a 的写日志性能仅次于直接写内存，与使用 BufferOutputStream 写文件基本保持一致，事实上为了保证多线程安全性， Log4a 在写 mmap 内存的时候都是加锁的，在没锁的情况下可以更靠近直接写内存的速度（有兴趣的可以自行测试）。  
 BufferOutputStream 是将先数据缓存在内存中，之后再刷新进文件的，如果在刷新之前断电了或者强杀了进程，那么内存中的数据就会丢失无法恢复。Log4a 会在下次启动的时候恢复日志文件保证日志的完整性。
 
+## 感谢
+
+- [Tencent/mars](https://github.com/Tencent/mars)
+- [XLog](https://github.com/elvishew/xLog)
+
 ---
 
 ## 关于我：
