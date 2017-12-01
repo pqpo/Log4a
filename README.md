@@ -2,8 +2,9 @@
 
     Log4a 是一个基于 mmap, 高性能、高可用的 Android 日志收集框架
 
+## WHY Log4a:
 
-## WHY:
+**如果觉得还不错，欢迎 start，fork。**
 
 Log4a 使用 mmap 文件映射内存作为缓存，可以在不牺牲性能的前提下最大化的保证日志的完整性。
 日志首先会写入到 mmap 文件映射内存中，基于 mmap 的特性，即使用户强杀了进程，日志文件也不会丢失，并且会在下次初始化 Log4a 的时候回写到日志文件中。
@@ -53,7 +54,7 @@ Log4a.setLogger(logger);
 Log4a.i(TAG, "Hello，Log4a!");
 ```
 
-4. 在合适的时间刷新缓存或者释放内存  
+4. 选择在合适的时候刷新缓存**或者**释放内存  
 ```java
 //在应用退出的时候刷新缓存
 Log4a.flush();
@@ -64,9 +65,9 @@ Log4a.release();
 ## 性能测试
 
 性能测试的代码位于 Sample 中，分别测试了 Log4a, android.util.Log, 直接写内存（将日志内容保存到 ArrayList 中）, 实时写文件, 使用 Buffer 写文件
-你也可以自行下载 [Sample APK](art/log4a_sample_v1.0.0.apk)，在你自己的设备上进行测试。
+当然也可以自行下载 [Sample APK](art/log4a_sample_v1.0.0.apk)，在你的设备上进行测试。
 
-下面分别是在 google pixel，Moto X 中写1w条日志的测试情况：  
+下面分别是在 Google Pixel 和 Moto X 中写1w条日志的测试情况：  
 
 |Google Pixel|Moto X|
 |:---:|:---:|
