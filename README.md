@@ -1,5 +1,7 @@
 # Log4a
 
+([English](README_en.md) | 中文)
+
     Log4a 是一个基于 mmap, 高性能、高可用的 Android 日志收集框架
 
 ## WHY Log4a:
