@@ -20,6 +20,8 @@ import me.pqpo.librarylog4a.appender.AndroidAppender;
 import me.pqpo.librarylog4a.appender.Appender;
 import me.pqpo.librarylog4a.appender.FileAppender;
 import me.pqpo.librarylog4a.formatter.Formatter;
+import me.pqpo.log4a.append.BufferFileAppender;
+import me.pqpo.log4a.append.NoBufferFileAppender;
 
 import static me.pqpo.log4a.LogInit.BUFFER_SIZE;
 

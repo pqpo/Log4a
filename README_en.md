@@ -8,16 +8,16 @@
 
 **If you like, welcome start, fork or follow me.**
 
-Log4a uses file mapping memory(mmap) as a cache, which maximizes the integrity of the log without sacrificing performance.
+Log4a uses file mapping memory(mmap) as a cache, that the integrity of the log can be guaranteed without sacrificing performance.
 The log will be first written to file mapping memory, based on the mmap feature, even if the user kill the process, 
-the log data will not be lost, and will write back to the log file the next time Log4a is initialized.
+the log data will not be lost, and will write back to the log file at the next time Log4a is initialized.
 
-For mobile developers, for some users online feedback difficult to reproduce the problem, analysis of the log is sometimes necessary to solve the problem.
+For mobile developers, with some users's online feedback which is difficult to reproduce the problem, analysis of the log is sometimes necessary to solve the problem.
 However, the collection of logs has always been a pain point, that is, performance and log integrity can not have both.
-To achieve high-performance log collection, it is bound to use a lot of memory, the first log into memory, 
-and then at the right time to write the log in memory to the file system (flush)
+To achieve high-performance log collection, it is bound to use a lot of memory, the first write the log into memory, 
+and then at the right time to write the log which in memory to the file system (flush)
 If flushing before the user kill the process, then the contents of the memory will be lost.
-Real-time log file can be written to ensure the integrity of the log, but the write file is IO operation, 
+Real-time write log to file can be written to ensure the integrity of the log, but the write file is a IO operation, 
 involves the user mode and kernel state switch, compared to write directly to the memory will be more time-consuming, 
 frequent writes in the UI thread file will cause Caton , Affect the user experience.
 
