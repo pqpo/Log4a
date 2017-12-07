@@ -24,7 +24,7 @@ public class FileAppender extends AbsAppender {
 
     protected FileAppender(Builder builder) {
         logBuffer = new LogBuffer(builder.bufferFilePath, builder.bufferSize, builder.logFilePath);
-        setMaxSingleLength(builder.bufferSize - 1);
+        setMaxSingleLength(builder.bufferSize - 1 - builder.logFilePath.toCharArray().length);
         setLevel(builder.level);
         addInterceptor(builder.interceptors);
         setFormatter(builder.formatter);

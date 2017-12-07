@@ -4,32 +4,25 @@
 
 #include "includes/LogBuffer.h"
 
-LogBuffer::LogBuffer(char *ptr, size_t capacity):
+LogBuffer::LogBuffer(char *ptr, size_t buffer_size):
         buffer_ptr(ptr),
-        buffer_capacity(capacity) {
-    offset = strlen(ptr);
+        buffer_size(buffer_size) {
+    data_ptr = buffer_ptr + 1 + buffer_ptr[0];
+    write_ptr = data_ptr + strlen(data_ptr);
 }
 
 LogBuffer::~LogBuffer() {
     release();
 }
 
-char *LogBuffer::ptr() {
-    return buffer_ptr;
-}
-
-size_t LogBuffer::capacity() {
-    return buffer_capacity;
-}
-
-size_t LogBuffer::size() {
-    return offset;
+size_t LogBuffer::dataSize() {
+    return write_ptr - data_ptr;
 }
 
 char *LogBuffer::dataCopy() {
-    size_t str_len = size() + 1;  //'\0'
+    size_t str_len = dataSize() + 1;  //'\0'
     char* data = new char[str_len];
-    memcpy(data, ptr(), str_len);
+    memcpy(data, data_ptr, str_len);
     data[str_len - 1] = '\0';
     return data;
 }
@@ -39,8 +32,8 @@ size_t LogBuffer::append(const char *log) {
     size_t len = strlen(log);
     size_t freeSize = emptySize();
     size_t writeSize = len <= freeSize ? len : freeSize;
-    memcpy(ptr() + offset, log, writeSize);
-    offset += writeSize;
+    memcpy(write_ptr, log, writeSize);
+    write_ptr += writeSize;
     return writeSize;
 }
 
@@ -56,21 +49,42 @@ void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
 
 void LogBuffer::clear() {
     std::lock_guard<std::recursive_mutex> lck_clear(log_mtx);
-    memset(ptr(), '\0', capacity());
-    offset = 0;
+    write_ptr = data_ptr;
+    memset(write_ptr, '\0', emptySize());
 }
 
 void LogBuffer::release() {
     std::lock_guard<std::recursive_mutex> lck_release(log_mtx);
     if(map_buffer) {
-        munmap(ptr(), capacity());
+        munmap(buffer_ptr, buffer_size);
     } else {
-        delete[] ptr();
+        delete[] buffer_ptr;
     }
 }
 
 size_t LogBuffer::emptySize() {
-    return capacity() - size() - 1;
+    return buffer_size - (write_ptr - buffer_ptr);
+}
+
+void LogBuffer::initData(const char *log_path) {
+    std::lock_guard<std::recursive_mutex> lck_release(log_mtx);
+    memset(buffer_ptr, '\0', buffer_size);
+    size_t log_path_len = strlen(log_path);
+    buffer_ptr[0] = static_cast<char>(log_path_len);
+    memcpy(buffer_ptr + 1, log_path, log_path_len);
+    data_ptr = buffer_ptr + 1 + log_path_len;
+    write_ptr = data_ptr;
+}
+
+char *LogBuffer::getLogPath() {
+    size_t path_len = static_cast<size_t >(buffer_ptr[0]);
+    char* file_path = nullptr;
+    if(path_len > 0) {
+        file_path = new char[path_len + 1];
+        memcpy(file_path, buffer_ptr + 1, path_len);
+        file_path[path_len] = '\0';
+    }
+    return file_path;
 }
 
 
