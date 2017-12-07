@@ -21,10 +21,11 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     const size_t buffer_size = static_cast<size_t>(capacity);
     int buffer_fd = open(buffer_path, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    if (strlen(log_path) > CHAR_MAX) {
+    // buffer 的第一个字节会用于存储日志路径名称长度，后面紧跟日志路径，之后才是日志信息
+    if (strlen(log_path) > CHAR_MAX / 2) {
         jclass je = env->FindClass("java/lang/IllegalArgumentException");
         std::ostringstream oss;
-        oss << "The length of log path must be less than " << CHAR_MAX;
+        oss << "The length of log path must be less than " << CHAR_MAX / 2;
         env -> ThrowNew(je, oss.str().c_str());
         return 0;
     }
@@ -33,6 +34,7 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     }
     char *buffer_ptr = openMMap(buffer_fd, buffer_size);
     bool map_buffer = true;
+    //如果打开 mmap 失败，则降级使用内存缓存
     if(buffer_ptr == nullptr) {
         buffer_ptr = new char[capacity];
         map_buffer = false;
@@ -40,6 +42,7 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     env->ReleaseStringUTFChars(buffer_path_, buffer_path);
     env->ReleaseStringUTFChars(log_path_, log_path);
     LogBuffer* logBuffer = new LogBuffer(buffer_ptr, buffer_size);
+    //将buffer内的数据清0， 并写入日志文件路径
     logBuffer->initData(log_path);
     logBuffer->map_buffer = map_buffer;
     return reinterpret_cast<long>(logBuffer);
@@ -48,7 +51,9 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
 static char* openMMap(int buffer_fd, size_t buffer_size) {
     char* map_ptr = nullptr;
     if (buffer_fd != -1) {
+        // 写脏数据
         writeDirtyLogToFile(buffer_fd);
+        // 根据 buffer size 调整 buffer 文件大小
         ftruncate(buffer_fd, static_cast<int>(buffer_size));
         lseek(buffer_fd, 0, SEEK_SET);
         map_ptr = (char *) mmap(0, buffer_size, PROT_WRITE | PROT_READ, MAP_SHARED, buffer_fd, 0);
@@ -85,6 +90,7 @@ static void writeNative(JNIEnv *env, jobject instance, jlong ptr,
     const char *log = env->GetStringUTFChars(log_, 0);
     LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
     size_t log_size = strlen(log);
+    // 缓存写不下时异步刷新
     if (log_size >= logBuffer->emptySize()) {
         logBuffer->async_flush(fileFlush);
     }
