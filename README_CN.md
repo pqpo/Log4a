@@ -30,7 +30,7 @@ allprojects {
 }
 	
 dependencies {
-    compile 'com.github.pqpo:Log4a:v1.0.0'
+    compile 'com.github.pqpo:Log4a:{last-version}'
 }
 ```
 
