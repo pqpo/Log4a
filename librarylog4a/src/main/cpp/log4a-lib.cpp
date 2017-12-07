@@ -2,6 +2,7 @@
 
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sstream>
 
 #include "includes/LogBuffer.h"
 
@@ -22,7 +23,9 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     if (strlen(log_path) > CHAR_MAX) {
         jclass je = env->FindClass("java/lang/IllegalArgumentException");
-        env -> ThrowNew(je, "The length of log path must be less than " + CHAR_MAX);
+        std::ostringstream oss;
+        oss << "The length of log path must be less than " << CHAR_MAX;
+        env -> ThrowNew(je, oss.str().c_str());
         return 0;
     }
     if (fileFlush == nullptr) {
