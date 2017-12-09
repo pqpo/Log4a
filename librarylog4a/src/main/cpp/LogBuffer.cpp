@@ -37,14 +37,19 @@ size_t LogBuffer::append(const char *log) {
     return writeSize;
 }
 
-void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
+bool LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
     std::lock_guard<std::recursive_mutex> lck_clear(log_mtx);
-    char *data = dataCopy();
-    if(strlen(data) == 0 || !fileFlush->async_flush(data)) {
-        delete[] data;
-    } else {
-        clear();
+    if (dataSize() > 0) {
+        char *data = dataCopy();
+        if(fileFlush->async_flush(data)) {
+            clear();
+            return true;
+        } else {
+            delete[] data;
+            return false;
+        }
     }
+    return false;
 }
 
 void LogBuffer::clear() {

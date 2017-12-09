@@ -74,10 +74,14 @@ static void writeDirtyLogToFile(int buffer_fd) {
                 LogBuffer tmp(buffer_ptr_tmp, buffered_size);
                 size_t data_size = tmp.dataSize();
                 if (data_size > 0) {
-                    int log_fd = open(tmp.getLogPath(), O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-                    if(log_fd != -1) {
-                        AsyncFileFlush tmpFlush(log_fd);
-                        tmp.async_flush(&tmpFlush);
+                    char* log_path = tmp.getLogPath();
+                    if (log_path != nullptr) {
+                        int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+                        if(log_fd != -1) {
+                            AsyncFileFlush tmpFlush(log_fd);
+                            tmp.async_flush(&tmpFlush);
+                        }
+                        delete[] log_path;
                     }
                 }
             }

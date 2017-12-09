@@ -29,7 +29,7 @@ public:
     void release();
     size_t emptySize();
     char *getLogPath();
-    void async_flush(AsyncFileFlush *fileFlush);
+    bool async_flush(AsyncFileFlush *fileFlush);
 
 public:
     bool map_buffer = true;
