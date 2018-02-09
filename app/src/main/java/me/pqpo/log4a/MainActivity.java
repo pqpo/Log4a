@@ -22,6 +22,7 @@ import me.pqpo.librarylog4a.appender.FileAppender;
 import me.pqpo.librarylog4a.formatter.Formatter;
 import me.pqpo.log4a.append.BufferFileAppender;
 import me.pqpo.log4a.append.NoBufferFileAppender;
+import me.pqpo.log4a.append.NoBufferInThreadFileAppender;
 
 import static me.pqpo.log4a.LogInit.BUFFER_SIZE;
 
@@ -126,6 +127,16 @@ public class MainActivity extends AppCompatActivity {
         doPerformanceTest("file log(with buffer)" ,times);
         Log4a.release();
 
+        Log4a.setLogger(logger);
+        logger.addAppender(createNoBufferInThreadFileAppender());
+        doPerformanceTest("file log(no buffer in thread)" ,times);
+        tvTest.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log4a.release();
+            }
+        }, 1000);
+
         LogInit.init(this);
         tvTest.append("## end");
     }
@@ -140,6 +151,12 @@ public class MainActivity extends AppCompatActivity {
         File logFile = new File(FileUtils.getLogDir(this), "logBufferFileTest.txt");
         logFile.delete();
         return new BufferFileAppender(logFile, BUFFER_SIZE);
+    }
+
+    private Appender createNoBufferInThreadFileAppender() {
+        File logFile = new File(FileUtils.getLogDir(this), "logNoBufferInThreadFileTest.txt");
+        logFile.delete();
+        return new NoBufferInThreadFileAppender(logFile);
     }
 
     private Appender createMemAppender(final List<String> buffer) {
