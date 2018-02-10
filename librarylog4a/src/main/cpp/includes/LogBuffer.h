@@ -14,6 +14,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "AsyncFileFlush.h"
+#include "FlushBuffer.h"
 
 
 class LogBuffer {
@@ -22,14 +23,14 @@ public:
     ~LogBuffer();
 
     void initData(const char *log_path);
-    char* dataCopy();
-    size_t dataSize();
-    size_t append(const char* log);
+    size_t length();
+    size_t append(const char* log, size_t len);
     void clear();
     void release();
     size_t emptySize();
     char *getLogPath();
-    bool async_flush(AsyncFileFlush *fileFlush);
+    void async_flush(AsyncFileFlush *fileFlush);
+    void flushToBuffer(FlushBuffer* flushBuffer);
 
 public:
     bool map_buffer = true;

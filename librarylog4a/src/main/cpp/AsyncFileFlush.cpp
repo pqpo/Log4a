@@ -16,10 +16,9 @@ void AsyncFileFlush::async_log_thread() {
     while (true) {
         std::unique_lock<std::mutex> lck_async_log_thread(async_mtx);
         while (!async_buffer.empty()) {
-            char* data = async_buffer.back();
-            flush(data);
+            FlushBuffer* data = async_buffer.back();
             async_buffer.pop_back();
-            delete[] data;
+            flush(data);
         }
         if (exit) {
             return;
@@ -28,21 +27,22 @@ void AsyncFileFlush::async_log_thread() {
     }
 }
 
-ssize_t AsyncFileFlush::flush(char *data) {
+ssize_t AsyncFileFlush::flush(FlushBuffer* flushBuffer) {
     ssize_t written = 0;
-    size_t str_len = strlen(data);
-    if(log_fd != -1 && str_len > 0) {
-        written = write(log_fd, data, str_len);
+    if(log_fd != -1 && flushBuffer->length() > 0) {
+        written = write(log_fd, flushBuffer->ptr(), flushBuffer->length());
     }
+    delete flushBuffer;
     return written;
 }
 
-bool AsyncFileFlush::async_flush(char *data) {
+bool AsyncFileFlush::async_flush(FlushBuffer* flushBuffer) {
     std::unique_lock<std::mutex> lck_async_flush(async_mtx);
     if (exit) {
+        delete flushBuffer;
         return false;
     }
-    async_buffer.push_back(data);
+    async_buffer.push_back(flushBuffer);
     async_condition.notify_all();
     return true;
 }

@@ -7,6 +7,7 @@
 LogBuffer::LogBuffer(char *ptr, size_t buffer_size):
         buffer_ptr(ptr),
         buffer_size(buffer_size) {
+    //todo add header data len
     data_ptr = buffer_ptr + 1 + buffer_ptr[0];
     write_ptr = data_ptr + strlen(data_ptr);
 }
@@ -15,21 +16,12 @@ LogBuffer::~LogBuffer() {
     release();
 }
 
-size_t LogBuffer::dataSize() {
+size_t LogBuffer::length() {
     return write_ptr - data_ptr;
 }
 
-char *LogBuffer::dataCopy() {
-    size_t str_len = dataSize() + 1;  //'\0'
-    char* data = new char[str_len];
-    memcpy(data, data_ptr, str_len);
-    data[str_len - 1] = '\0';
-    return data;
-}
-
-size_t LogBuffer::append(const char *log) {
+size_t LogBuffer::append(const char *log, size_t len) {
     std::lock_guard<std::recursive_mutex> lck_append(log_mtx);
-    size_t len = strlen(log);
     size_t freeSize = emptySize();
     size_t writeSize = len <= freeSize ? len : freeSize;
     memcpy(write_ptr, log, writeSize);
@@ -37,19 +29,13 @@ size_t LogBuffer::append(const char *log) {
     return writeSize;
 }
 
-bool LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
+void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
     std::lock_guard<std::recursive_mutex> lck_clear(log_mtx);
-    if (dataSize() > 0) {
-        char *data = dataCopy();
-        if(fileFlush->async_flush(data)) {
-            clear();
-            return true;
-        } else {
-            delete[] data;
-            return false;
-        }
+    if (length() > 0) {
+        FlushBuffer* flushBuffer = new FlushBuffer();
+        flushToBuffer(flushBuffer);
+        fileFlush->async_flush(flushBuffer);
     }
-    return false;
 }
 
 void LogBuffer::clear() {
@@ -90,6 +76,11 @@ char *LogBuffer::getLogPath() {
         file_path[path_len] = '\0';
     }
     return file_path;
+}
+
+void LogBuffer::flushToBuffer(FlushBuffer *flushBuffer) {
+    flushBuffer->write(data_ptr, length());
+    clear();
 }
 
 
