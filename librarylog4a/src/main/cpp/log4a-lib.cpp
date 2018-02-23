@@ -22,13 +22,6 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     int buffer_fd = open(buffer_path, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     // buffer 的第一个字节会用于存储日志路径名称长度，后面紧跟日志路径，之后才是日志信息
-    if (strlen(log_path) > CHAR_MAX / 2) {
-        jclass je = env->FindClass("java/lang/IllegalArgumentException");
-        std::ostringstream oss;
-        oss << "The length of log path must be less than " << CHAR_MAX / 2;
-        env -> ThrowNew(je, oss.str().c_str());
-        return 0;
-    }
     if (fileFlush == nullptr) {
         fileFlush = new AsyncFileFlush(log_fd);
     }
@@ -43,7 +36,7 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     env->ReleaseStringUTFChars(log_path_, log_path);
     LogBuffer* logBuffer = new LogBuffer(buffer_ptr, buffer_size);
     //将buffer内的数据清0， 并写入日志文件路径
-    logBuffer->initData(log_path);
+    logBuffer->initData((char *) log_path, strlen(log_path));
     logBuffer->map_buffer = map_buffer;
     return reinterpret_cast<long>(logBuffer);
 }

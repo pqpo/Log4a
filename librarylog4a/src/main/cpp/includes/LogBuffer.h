@@ -15,15 +15,18 @@
 #include <condition_variable>
 #include "AsyncFileFlush.h"
 #include "FlushBuffer.h"
+#include "LogBufferHeader.h"
 
+using namespace log_header;
 
 class LogBuffer {
 public:
     LogBuffer(char* ptr, size_t capacity);
     ~LogBuffer();
 
-    void initData(const char *log_path);
+    void initData(char *log_path, size_t log_path_len);
     size_t length();
+    void setLength(size_t len);
     size_t append(const char* log, size_t len);
     void clear();
     void release();
@@ -42,6 +45,8 @@ private:
 
     size_t buffer_size = 0;
     std::recursive_mutex log_mtx;
+
+    LogBufferHeader logHeader;
 
 };
 
