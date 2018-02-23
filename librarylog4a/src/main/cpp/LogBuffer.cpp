@@ -11,7 +11,11 @@ LogBuffer::LogBuffer(char *ptr, size_t buffer_size):
     if (logHeader.isAvailable()) {
         data_ptr = (char *) logHeader.ptr();
         write_ptr = (char *) logHeader.write_ptr();
+        if(logHeader.getIsCompress()) {
+            initCompress(true);
+        }
     }
+    memset(&zStream, 0, sizeof(zStream));
 }
 
 LogBuffer::~LogBuffer() {
@@ -28,9 +32,29 @@ void LogBuffer::setLength(size_t len) {
 
 size_t LogBuffer::append(const char *log, size_t len) {
     std::lock_guard<std::recursive_mutex> lck_append(log_mtx);
+
+    if (length() == 0) {
+        initCompress(is_compress);
+    }
+
     size_t freeSize = emptySize();
-    size_t writeSize = len <= freeSize ? len : freeSize;
-    memcpy(write_ptr, log, writeSize);
+    size_t writeSize = 0;
+    if (is_compress) {
+        zStream.avail_in = (uInt)len;
+        zStream.next_in = (Bytef*)log;
+
+        zStream.avail_out = (uInt)freeSize;
+        zStream.next_out = (Bytef*)write_ptr;
+
+        if (Z_OK != deflate(&zStream, Z_SYNC_FLUSH)) {
+            return 0;
+        }
+
+        writeSize = freeSize - zStream.avail_out;
+    } else {
+        writeSize = len <= freeSize ? len : freeSize;
+        memcpy(write_ptr, log, writeSize);
+    }
     write_ptr += writeSize;
     setLength(length());
     return writeSize;
@@ -39,8 +63,12 @@ size_t LogBuffer::append(const char *log, size_t len) {
 void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
     std::lock_guard<std::recursive_mutex> lck_clear(log_mtx);
     if (length() > 0) {
+        if (is_compress && Z_NULL != zStream.state) {
+            deflateEnd(&zStream);
+        }
         FlushBuffer* flushBuffer = new FlushBuffer();
-        flushToBuffer(flushBuffer);
+        flushBuffer->write(data_ptr, length());
+        clear();
         fileFlush->async_flush(flushBuffer);
     }
 }
@@ -54,6 +82,9 @@ void LogBuffer::clear() {
 
 void LogBuffer::release() {
     std::lock_guard<std::recursive_mutex> lck_release(log_mtx);
+    if (is_compress && Z_NULL != zStream.state) {
+        deflateEnd(&zStream);
+    }
     if(map_buffer) {
         munmap(buffer_ptr, buffer_size);
     } else {
@@ -65,7 +96,7 @@ size_t LogBuffer::emptySize() {
     return buffer_size - (write_ptr - buffer_ptr);
 }
 
-void LogBuffer::initData(char *log_path, size_t log_path_len) {
+void LogBuffer::initData(char *log_path, size_t log_path_len, bool is_compress) {
     std::lock_guard<std::recursive_mutex> lck_release(log_mtx);
     memset(buffer_ptr, '\0', buffer_size);
 
@@ -74,7 +105,10 @@ void LogBuffer::initData(char *log_path, size_t log_path_len) {
     header.log_path_len = log_path_len;
     header.log_path = log_path;
     header.log_len = 0;
+    header.isCompress = is_compress;
+
     logHeader.initHeader(header);
+    initCompress(is_compress);
 
     data_ptr = (char *) logHeader.ptr();
     write_ptr = (char *) logHeader.write_ptr();
@@ -84,9 +118,15 @@ char *LogBuffer::getLogPath() {
     return logHeader.getLogPath();
 }
 
-void LogBuffer::flushToBuffer(FlushBuffer *flushBuffer) {
-    flushBuffer->write(data_ptr, length());
-    clear();
+bool LogBuffer::initCompress(bool compress) {
+    is_compress = compress;
+    if (is_compress) {
+        zStream.zalloc = Z_NULL;
+        zStream.zfree = Z_NULL;
+        zStream.opaque = Z_NULL;
+        return Z_OK == deflateInit2(&zStream, Z_BEST_COMPRESSION, Z_DEFLATED, -MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY);
+    }
+    return false;
 }
 
 

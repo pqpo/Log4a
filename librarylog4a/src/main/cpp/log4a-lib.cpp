@@ -36,7 +36,7 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     env->ReleaseStringUTFChars(log_path_, log_path);
     LogBuffer* logBuffer = new LogBuffer(buffer_ptr, buffer_size);
     //将buffer内的数据清0， 并写入日志文件路径
-    logBuffer->initData((char *) log_path, strlen(log_path));
+    logBuffer->initData((char *) log_path, strlen(log_path), true);
     logBuffer->map_buffer = map_buffer;
     return reinterpret_cast<long>(logBuffer);
 }

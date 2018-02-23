@@ -12,6 +12,7 @@ using namespace log_header;
 //    size_t log_len;
 //    size_t log_path_len;
 //    char* log_path;
+//    char isCompress;
 //};
 
 LogBufferHeader::LogBufferHeader(void *data, size_t size) : data_ptr((char *) data), data_size(size) {
@@ -38,6 +39,8 @@ Header* LogBufferHeader::getHeader() {
         memset(log_path, 0, log_path_len);
         memcpy(log_path, data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t), log_path_len);
         header->log_path = log_path;
+        char isCompress = (data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t) + log_path_len)[0];
+        header->isCompress = isCompress == 1;
     }
     return header;
 }
@@ -46,7 +49,7 @@ size_t LogBufferHeader::getHeaderLen() {
     if (isAvailable()) {
         size_t log_path_len = 0;
         memcpy(&log_path_len, data_ptr + sizeof(char) + sizeof(size_t), sizeof(size_t));
-        return (sizeof(char) + sizeof(size_t) + sizeof(size_t) + log_path_len);
+        return (sizeof(char) + sizeof(size_t) + sizeof(size_t) + log_path_len + sizeof(char));
     }
     return 0;
 }
@@ -67,6 +70,13 @@ void LogBufferHeader::initHeader(Header &header) {
     memcpy(data_ptr + sizeof(char), &header.log_len, sizeof(size_t));
     memcpy(data_ptr + sizeof(char) + sizeof(size_t), &header.log_path_len, sizeof(size_t));
     memcpy(data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t), header.log_path, header.log_path_len);
+    char isCompress = 0;
+    if (header.isCompress) {
+        isCompress = 1;
+    }
+    memcpy(data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t) + header.log_path_len, &isCompress,
+           sizeof(char));
+
 }
 
 size_t LogBufferHeader::getLogLen() {
@@ -108,6 +118,14 @@ void LogBufferHeader::setLogLen(size_t log_len) {
 
 bool LogBufferHeader::isAvailable() {
     return data_ptr[0] == kMagicHeader;
+}
+
+bool LogBufferHeader::getIsCompress() {
+    if (isAvailable()) {
+        char isCompress = (data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t) + getLogPathLen())[0];
+        return isCompress == 1;
+    }
+    return false;
 }
 
 

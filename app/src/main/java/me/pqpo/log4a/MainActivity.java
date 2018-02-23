@@ -74,28 +74,6 @@ public class MainActivity extends AppCompatActivity {
                     }.start();
                 }
                 tvTest.setText("done!\nlog file path:" + getLogPath());
-//                File logFile = new File(getLogPath());
-//                try {
-//                    FileInputStream fis = new FileInputStream(logFile);
-//                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//                    byte[] buffer = new byte[1024];
-//                    int read = -1;
-//                    while ((read = fis.read(buffer)) != -1) {
-//                        baos.write(buffer, 0, read);
-//                    }
-//                    byte[] bytes = baos.toByteArray();
-//
-//
-//                    byte[] decompress = ZLibUtils.decompress(bytes);
-//                    String log = new String(decompress);
-//                    tvTest.append("\n");
-//                    tvTest.append(log);
-//
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
             }
         });
 

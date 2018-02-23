@@ -16,6 +16,7 @@
 #include "AsyncFileFlush.h"
 #include "FlushBuffer.h"
 #include "LogBufferHeader.h"
+#include <zlib.h>
 
 using namespace log_header;
 
@@ -24,21 +25,22 @@ public:
     LogBuffer(char* ptr, size_t capacity);
     ~LogBuffer();
 
-    void initData(char *log_path, size_t log_path_len);
+    void initData(char *log_path, size_t log_path_len, bool is_compress);
     size_t length();
-    void setLength(size_t len);
     size_t append(const char* log, size_t len);
-    void clear();
     void release();
     size_t emptySize();
     char *getLogPath();
     void async_flush(AsyncFileFlush *fileFlush);
-    void flushToBuffer(FlushBuffer* flushBuffer);
 
 public:
     bool map_buffer = true;
 
 private:
+    void clear();
+    void setLength(size_t len);
+    bool initCompress(bool compress);
+
     char* const buffer_ptr = nullptr;
     char* data_ptr = nullptr;
     char* write_ptr = nullptr;
@@ -47,6 +49,8 @@ private:
     std::recursive_mutex log_mtx;
 
     LogBufferHeader logHeader;
+    z_stream zStream;
+    bool is_compress = false;
 
 };
 

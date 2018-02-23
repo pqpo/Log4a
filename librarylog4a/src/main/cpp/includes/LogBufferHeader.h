@@ -15,6 +15,7 @@ namespace log_header{
         size_t log_len;
         size_t log_path_len;
         char* log_path;
+        bool isCompress;
     };
 
     class LogBufferHeader {
@@ -32,6 +33,7 @@ namespace log_header{
         size_t getLogPathLen();
         char* getLogPath();
         void setLogLen(size_t log_len);
+        bool getIsCompress();
         bool isAvailable();
 
     private:
