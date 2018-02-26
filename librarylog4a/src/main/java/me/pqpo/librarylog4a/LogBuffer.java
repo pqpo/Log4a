@@ -13,16 +13,22 @@ public class LogBuffer {
     private String logPath;
     private String bufferPath;
     private int bufferSize;
+    private boolean compress;
 
-    public LogBuffer(String bufferPath, int capacity, String logPath) {
+    public LogBuffer(String bufferPath, int capacity, String logPath, boolean compress) {
         this.bufferPath = bufferPath;
         this.bufferSize = capacity;
         this.logPath = logPath;
+        this.compress = compress;
         try {
-            ptr = initNative(bufferPath, capacity, logPath);
+            ptr = initNative(bufferPath, capacity, logPath, compress);
         }catch (Exception e) {
             Log.e(TAG, Log4a.getStackTraceString(e));
         }
+    }
+
+    public boolean isCompress() {
+        return compress;
     }
 
     public String getLogPath() {
@@ -72,7 +78,7 @@ public class LogBuffer {
         System.loadLibrary("log4a-lib");
     }
 
-    private native static long initNative(String bufferPath, int capacity, String logPath);
+    private native static long initNative(String bufferPath, int capacity, String logPath, boolean compress);
 
     private native void writeNative(long ptr, String log);
 

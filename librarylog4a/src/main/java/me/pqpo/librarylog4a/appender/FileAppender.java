@@ -23,7 +23,7 @@ public class FileAppender extends AbsAppender {
     private Formatter formatter;
 
     protected FileAppender(Builder builder) {
-        logBuffer = new LogBuffer(builder.bufferFilePath, builder.bufferSize, builder.logFilePath);
+        logBuffer = new LogBuffer(builder.bufferFilePath, builder.bufferSize, builder.logFilePath, builder.compress);
         setMaxSingleLength(builder.bufferSize - 1 - builder.logFilePath.toCharArray().length);
         setLevel(builder.level);
         addInterceptor(builder.interceptors);
@@ -75,6 +75,7 @@ public class FileAppender extends AbsAppender {
         private int level = Level.VERBOSE;
         private List<Interceptor> interceptors;
         private Formatter formatter;
+        private boolean compress;
 
         public Builder(Context context) {
             this.context = context;
@@ -110,6 +111,11 @@ public class FileAppender extends AbsAppender {
 
         public Builder setFormatter(Formatter formatter) {
             this.formatter = formatter;
+            return this;
+        }
+
+        public Builder setCompress(boolean compress) {
+            this.compress = compress;
             return this;
         }
 

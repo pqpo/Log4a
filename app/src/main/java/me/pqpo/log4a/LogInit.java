@@ -46,6 +46,7 @@ public class LogInit {
                 .addInterceptor(wrapInterceptor)
                 .setBufferFilePath(buffer_path)
                 .setFormatter(new DateFileFormatter())
+                .setCompress(false)
                 .setBufferSize(BUFFER_SIZE);
         Logger logger = new Logger.Builder()
                 .enableAndroidAppender(androidBuild)

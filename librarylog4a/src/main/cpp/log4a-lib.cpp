@@ -15,7 +15,7 @@ static void writeDirtyLogToFile(int buffer_fd);
 static AsyncFileFlush *fileFlush = nullptr;
 
 static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
-           jint capacity, jstring log_path_) {
+           jint capacity, jstring log_path_, jboolean compress_) {
     const char *buffer_path = env->GetStringUTFChars(buffer_path_, 0);
     const char *log_path = env->GetStringUTFChars(log_path_, 0);
     const size_t buffer_size = static_cast<size_t>(capacity);
@@ -36,7 +36,7 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     env->ReleaseStringUTFChars(log_path_, log_path);
     LogBuffer* logBuffer = new LogBuffer(buffer_ptr, buffer_size);
     //将buffer内的数据清0， 并写入日志文件路径
-    logBuffer->initData((char *) log_path, strlen(log_path), true);
+    logBuffer->initData((char *) log_path, strlen(log_path), compress_);
     logBuffer->map_buffer = map_buffer;
     return reinterpret_cast<long>(logBuffer);
 }
@@ -114,7 +114,7 @@ static JNINativeMethod gMethods[] = {
 
         {
                 "initNative",
-                "(Ljava/lang/String;ILjava/lang/String;)J",
+                "(Ljava/lang/String;ILjava/lang/String;Z)J",
                 (void*)initNative
         },
 
