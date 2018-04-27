@@ -1,20 +1,18 @@
-package me.pqpo.librarylog4a;
+package me.pqpo.librarylog4a.logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import me.pqpo.librarylog4a.appender.AndroidAppender;
 import me.pqpo.librarylog4a.appender.Appender;
-import me.pqpo.librarylog4a.appender.FileAppender;
 
 /**
  * Created by pqpo on 2017/11/16.
  */
-public class Logger {
+public class AppenderLogger implements Logger{
 
     private List<Appender> appenderList = new ArrayList<>();
 
-    protected Logger() {
+    protected AppenderLogger() {
     }
 
     public List<Appender> getAppenderList() {
@@ -27,7 +25,8 @@ public class Logger {
         }
     }
 
-    protected void println(int priority, String tag, String msg) {
+    @Override
+    public void println(int priority, String tag, String msg) {
         if (appenderList == null) {
             return;
         }
@@ -36,12 +35,14 @@ public class Logger {
         }
     }
 
+    @Override
     public void flush() {
         for (Appender appender : appenderList) {
             appender.flush();
         }
     }
 
+    @Override
     public void release() {
         for (Appender appender : appenderList) {
             appender.release();
@@ -52,10 +53,10 @@ public class Logger {
 
     public static class Builder {
 
-        private Logger logger;
+        private AppenderLogger logger;
 
         public Builder() {
-            logger = new Logger();
+            logger = new AppenderLogger();
         }
 
         public Builder addAppender(Appender appender) {
@@ -63,19 +64,7 @@ public class Logger {
             return this;
         }
 
-        public Builder enableAndroidAppender(AndroidAppender.Builder builder) {
-            logger.addAppender(builder.create());
-            return this;
-        }
-
-        public Builder enableFileAppender(FileAppender.Builder builder) {
-            if (builder != null) {
-                logger.addAppender(builder.create());
-            }
-            return this;
-        }
-
-        public Logger create() {
+        public AppenderLogger create() {
             return logger;
         }
 

@@ -18,18 +18,20 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
            jint capacity, jstring log_path_, jboolean compress_) {
     const char *buffer_path = env->GetStringUTFChars(buffer_path_, 0);
     const char *log_path = env->GetStringUTFChars(log_path_, 0);
-    const size_t buffer_size = static_cast<size_t>(capacity);
+    size_t buffer_size = static_cast<size_t>(capacity);
     int buffer_fd = open(buffer_path, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     // buffer 的第一个字节会用于存储日志路径名称长度，后面紧跟日志路径，之后才是日志信息
     if (fileFlush == nullptr) {
         fileFlush = new AsyncFileFlush(log_fd);
     }
+    // 加上头占用的大小
+    buffer_size = buffer_size + LogBufferHeader::calculateHeaderLen(strlen(log_path));
     char *buffer_ptr = openMMap(buffer_fd, buffer_size);
     bool map_buffer = true;
     //如果打开 mmap 失败，则降级使用内存缓存
     if(buffer_ptr == nullptr) {
-        buffer_ptr = new char[capacity];
+        buffer_ptr = new char[buffer_size];
         map_buffer = false;
     }
     env->ReleaseStringUTFChars(buffer_path_, buffer_path);

@@ -1,10 +1,11 @@
 package me.pqpo.librarylog4a;
 
-import android.util.Log;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.UnknownHostException;
+
+import me.pqpo.librarylog4a.logger.AndroidLogger;
+import me.pqpo.librarylog4a.logger.Logger;
 
 import static me.pqpo.librarylog4a.Level.*;
 
@@ -14,7 +15,7 @@ import static me.pqpo.librarylog4a.Level.*;
  */
 public class Log4a {
 
-    private static Logger sLoggerDelegate = null;
+    private static Logger sLoggerDelegate = new AndroidLogger();
 
     public static void setLogger(Logger logger) {
         sLoggerDelegate = logger;
@@ -61,9 +62,7 @@ public class Log4a {
     }
 
     public static void println(int priority, String tag, String msg) {
-        if (sLoggerDelegate == null) {
-            Log.println(priority, tag, msg);
-        } else {
+        if (sLoggerDelegate != null) {
             sLoggerDelegate.println(priority, tag, msg);
         }
     }

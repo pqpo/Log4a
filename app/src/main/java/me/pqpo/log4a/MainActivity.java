@@ -14,12 +14,13 @@ import java.util.List;
 import java.util.Locale;
 
 import me.pqpo.librarylog4a.Log4a;
-import me.pqpo.librarylog4a.Logger;
+import me.pqpo.librarylog4a.logger.AppenderLogger;
 import me.pqpo.librarylog4a.appender.AbsAppender;
 import me.pqpo.librarylog4a.appender.AndroidAppender;
 import me.pqpo.librarylog4a.appender.Appender;
 import me.pqpo.librarylog4a.appender.FileAppender;
 import me.pqpo.librarylog4a.formatter.Formatter;
+import me.pqpo.librarylog4a.logger.Logger;
 import me.pqpo.log4a.append.BufferFileAppender;
 import me.pqpo.log4a.append.NoBufferFileAppender;
 import me.pqpo.log4a.append.NoBufferInThreadFileAppender;
@@ -98,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         tvTest.append(String.format(Locale.getDefault(),
                 "## prints %d logs:\n", times));
         Log4a.release();
-        Logger logger = new Logger.Builder().create();
+        AppenderLogger logger = new AppenderLogger.Builder().create();
         Log4a.setLogger(logger);
 
         logger.addAppender(createLog4aFileAppender());
@@ -205,12 +206,14 @@ public class MainActivity extends AppCompatActivity {
     public String getLogPath() {
         String logPath = "";
         Logger logger = Log4a.getLogger();
-        List<Appender> appenderList = logger.getAppenderList();
-        for (Appender appender : appenderList) {
-            if (appender instanceof FileAppender) {
-                FileAppender fileAppender = (FileAppender) appender;
-                logPath = fileAppender.getLogPath();
-                break;
+        if (logger instanceof AppenderLogger) {
+            List<Appender> appenderList = ((AppenderLogger)logger).getAppenderList();
+            for (Appender appender : appenderList) {
+                if (appender instanceof FileAppender) {
+                    FileAppender fileAppender = (FileAppender) appender;
+                    logPath = fileAppender.getLogPath();
+                    break;
+                }
             }
         }
         return logPath;
