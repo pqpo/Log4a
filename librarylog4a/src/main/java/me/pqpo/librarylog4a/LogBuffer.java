@@ -27,6 +27,17 @@ public class LogBuffer {
         }
     }
 
+    public void changeLogPath(String logPath) {
+        if (ptr != 0) {
+            try {
+                changeLogPathNative(ptr, logPath);
+                this.logPath = logPath;
+            }catch (Exception e) {
+                Log.e(TAG, Log4a.getStackTraceString(e));
+            }
+        }
+    }
+
     public boolean isCompress() {
         return compress;
     }
@@ -85,5 +96,7 @@ public class LogBuffer {
     private native void flushAsyncNative(long ptr);
 
     private native void releaseNative(long ptr);
+
+    private native void changeLogPathNative(long ptr, String logPath);
 
 }

@@ -35,8 +35,8 @@ Header* LogBufferHeader::getHeader() {
         size_t log_path_len = 0;
         memcpy(&log_path_len, data_ptr + sizeof(char) + sizeof(size_t), sizeof(size_t));
         header->log_path_len = log_path_len;
-        char *log_path = new char[log_path_len];
-        memset(log_path, 0, log_path_len);
+        char *log_path = new char[log_path_len + 1];
+        memset(log_path, 0, log_path_len + 1);
         memcpy(log_path, data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t), log_path_len);
         header->log_path = log_path;
         char isCompress = (data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t) + log_path_len)[0];
@@ -101,8 +101,8 @@ char *LogBufferHeader::getLogPath() {
     if (isAvailable()) {
         size_t log_path_len = getLogPathLen();
         if (log_path_len > 0) {
-            char *log_path = new char[log_path_len];
-            memset(log_path, 0, log_path_len);
+            char *log_path = new char[log_path_len + 1];
+            memset(log_path, 0, log_path_len + 1);
             memcpy(log_path, data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t), log_path_len);
             return log_path;
         }

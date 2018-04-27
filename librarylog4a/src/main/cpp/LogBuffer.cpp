@@ -65,7 +65,18 @@ size_t LogBuffer::append(const char *log, size_t len) {
     return writeSize;
 }
 
+void LogBuffer::setAsyncFileFlush(AsyncFileFlush *_fileFlush) {
+    fileFlush = _fileFlush;
+}
+
+void LogBuffer::async_flush() {
+    async_flush(fileFlush);
+}
+
 void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
+    if(fileFlush == nullptr) {
+        return;
+    }
     std::lock_guard<std::recursive_mutex> lck_clear(log_mtx);
     if (length() > 0) {
         if (is_compress && Z_NULL != zStream.state) {
@@ -145,6 +156,13 @@ bool LogBuffer::openSetLogFile(const char *log_path) {
         }
     }
     return false;
+}
+
+void LogBuffer::changeLogPath(char *log_path) {
+    if(log_file != nullptr) {
+        async_flush();
+    }
+    initData(log_path, strlen(log_path), is_compress);
 }
 
 

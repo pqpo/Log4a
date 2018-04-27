@@ -9,7 +9,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -90,6 +92,13 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getApplicationContext(), "testing", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        findViewById(R.id.btn_change_log).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                changeLogPath();
             }
         });
 
@@ -217,6 +226,23 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return logPath;
+    }
+
+    public void changeLogPath() {
+        Logger logger = Log4a.getLogger();
+        if (logger instanceof AppenderLogger) {
+            List<Appender> appenderList = ((AppenderLogger)logger).getAppenderList();
+            for (Appender appender : appenderList) {
+                if (appender instanceof FileAppender) {
+                    FileAppender fileAppender = (FileAppender) appender;
+                    File log = FileUtils.getLogDir(this);
+                    String time = new SimpleDateFormat("yyyy_MM_dd", Locale.getDefault()).format(new Date());
+                    String logPath = new File(log, time + "-" + System.currentTimeMillis() + ".txt").getAbsolutePath();
+                    fileAppender.changeLogPath(logPath);
+                    break;
+                }
+            }
+        }
     }
 
     @Override

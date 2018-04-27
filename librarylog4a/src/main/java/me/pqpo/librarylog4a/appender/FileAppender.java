@@ -42,6 +42,10 @@ public class FileAppender extends AbsAppender {
         return logBuffer.getLogPath();
     }
 
+    public void changeLogPath(String logPath) {
+        logBuffer.changeLogPath(logPath);
+    }
+
     public void setFormatter(Formatter formatter) {
         if (formatter != null) {
             this.formatter = formatter;

@@ -37,6 +37,7 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     env->ReleaseStringUTFChars(log_path_, log_path);
 
     LogBuffer* logBuffer = new LogBuffer(buffer_ptr, buffer_size);
+    logBuffer->setAsyncFileFlush(fileFlush);
     //将buffer内的数据清0， 并写入日志文件路径
     logBuffer->initData((char *) log_path, strlen(log_path), compress_);
     logBuffer->map_buffer = map_buffer;
@@ -99,6 +100,14 @@ static void releaseNative(JNIEnv *env, jobject instance, jlong ptr) {
     fileFlush = nullptr;
 }
 
+static void changeLogPathNative(JNIEnv *env, jobject instance, jlong ptr,
+                                jstring logFilePath) {
+    const char *log_path = env->GetStringUTFChars(logFilePath, 0);
+    LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
+    logBuffer->changeLogPath(const_cast<char *>(log_path));
+    env->ReleaseStringUTFChars(logFilePath, log_path);
+}
+
 static void  flushAsyncNative(JNIEnv *env, jobject instance, jlong ptr) {
     LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
     logBuffer->async_flush(fileFlush);
@@ -122,6 +131,12 @@ static JNINativeMethod gMethods[] = {
                 "flushAsyncNative",
                 "(J)V",
                 (void*)flushAsyncNative
+        },
+
+        {
+                "changeLogPathNative",
+                "(JLjava/lang/String;)V",
+                (void*)changeLogPathNative
         },
 
         {

@@ -31,7 +31,10 @@ public:
     void release();
     size_t emptySize();
     char *getLogPath();
+    void setAsyncFileFlush(AsyncFileFlush *fileFlush);
+    void async_flush();
     void async_flush(AsyncFileFlush *fileFlush);
+    void changeLogPath(char *log_path);
 
 public:
     bool map_buffer = true;
@@ -43,7 +46,7 @@ private:
     bool openSetLogFile(const char *log_path);
 
     FILE* log_file = nullptr;
-
+    AsyncFileFlush *fileFlush = nullptr;
     char* const buffer_ptr = nullptr;
     char* data_ptr = nullptr;
     char* write_ptr = nullptr;
