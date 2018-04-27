@@ -20,7 +20,7 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     const char *log_path = env->GetStringUTFChars(log_path_, 0);
     size_t buffer_size = static_cast<size_t>(capacity);
     int buffer_fd = open(buffer_path, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+    FILE* log_fd = fopen(log_path, "ab+");
     // buffer 的第一个字节会用于存储日志路径名称长度，后面紧跟日志路径，之后才是日志信息
     if (fileFlush == nullptr) {
         fileFlush = new AsyncFileFlush(log_fd);
@@ -71,8 +71,8 @@ static void writeDirtyLogToFile(int buffer_fd) {
                 if (data_size > 0) {
                     char* log_path = tmp.getLogPath();
                     if (log_path != nullptr) {
-                        int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-                        if(log_fd != -1) {
+                        FILE* log_fd = fopen(log_path, "ab+");
+                        if(log_fd != NULL) {
                             AsyncFileFlush tmpFlush(log_fd);
                             tmp.async_flush(&tmpFlush);
                         }

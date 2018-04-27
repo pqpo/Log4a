@@ -16,7 +16,7 @@
 class AsyncFileFlush {
 
 public:
-    AsyncFileFlush(int log_fd);
+    AsyncFileFlush(FILE* file);
     ~AsyncFileFlush();
     bool async_flush(FlushBuffer* flushBuffer);
     void stopFlush();
@@ -26,7 +26,7 @@ private:
     ssize_t flush(FlushBuffer* flushBuffer);
 
     bool exit = false;
-    int log_fd;
+    FILE* file;
     std::vector<FlushBuffer*> async_buffer;
     std::thread async_thread;
     std::condition_variable async_condition;
