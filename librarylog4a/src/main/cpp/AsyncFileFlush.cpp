@@ -4,7 +4,7 @@
 
 #include "AsyncFileFlush.h"
 
-AsyncFileFlush::AsyncFileFlush(FILE* file):file(file) {
+AsyncFileFlush::AsyncFileFlush() {
     async_thread = std::thread(&AsyncFileFlush::async_log_thread, this);
 }
 
@@ -29,9 +29,10 @@ void AsyncFileFlush::async_log_thread() {
 
 ssize_t AsyncFileFlush::flush(FlushBuffer* flushBuffer) {
     ssize_t written = 0;
-    if(file != NULL && flushBuffer->length() > 0) {
-        written = fwrite(flushBuffer->ptr(), flushBuffer->length(), 1, file);
-        fflush(file);
+    FILE* log_file = flushBuffer->logFile();
+    if(log_file != nullptr && flushBuffer->length() > 0) {
+        written = fwrite(flushBuffer->ptr(), flushBuffer->length(), 1, log_file);
+        fflush(log_file);
     }
     delete flushBuffer;
     return written;

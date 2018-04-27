@@ -40,6 +40,9 @@ private:
     void clear();
     void setLength(size_t len);
     bool initCompress(bool compress);
+    bool openSetLogFile(const char *log_path);
+
+    FILE* log_file = nullptr;
 
     char* const buffer_ptr = nullptr;
     char* data_ptr = nullptr;

@@ -20,10 +20,9 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     const char *log_path = env->GetStringUTFChars(log_path_, 0);
     size_t buffer_size = static_cast<size_t>(capacity);
     int buffer_fd = open(buffer_path, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    FILE* log_fd = fopen(log_path, "ab+");
     // buffer 的第一个字节会用于存储日志路径名称长度，后面紧跟日志路径，之后才是日志信息
     if (fileFlush == nullptr) {
-        fileFlush = new AsyncFileFlush(log_fd);
+        fileFlush = new AsyncFileFlush();
     }
     // 加上头占用的大小
     buffer_size = buffer_size + LogBufferHeader::calculateHeaderLen(strlen(log_path));
@@ -36,6 +35,7 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
     }
     env->ReleaseStringUTFChars(buffer_path_, buffer_path);
     env->ReleaseStringUTFChars(log_path_, log_path);
+
     LogBuffer* logBuffer = new LogBuffer(buffer_ptr, buffer_size);
     //将buffer内的数据清0， 并写入日志文件路径
     logBuffer->initData((char *) log_path, strlen(log_path), compress_);
@@ -69,15 +69,7 @@ static void writeDirtyLogToFile(int buffer_fd) {
                 LogBuffer tmp(buffer_ptr_tmp, buffered_size);
                 size_t data_size = tmp.length();
                 if (data_size > 0) {
-                    char* log_path = tmp.getLogPath();
-                    if (log_path != nullptr) {
-                        FILE* log_fd = fopen(log_path, "ab+");
-                        if(log_fd != NULL) {
-                            AsyncFileFlush tmpFlush(log_fd);
-                            tmp.async_flush(&tmpFlush);
-                        }
-                        delete[] log_path;
-                    }
+                    tmp.async_flush(fileFlush);
                 }
             }
         }
