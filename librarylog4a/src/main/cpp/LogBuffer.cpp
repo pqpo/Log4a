@@ -106,6 +106,9 @@ void LogBuffer::release() {
     } else {
         delete[] buffer_ptr;
     }
+    if(log_file != nullptr) {
+        fclose(log_file);
+    }
 }
 
 size_t LogBuffer::emptySize() {
