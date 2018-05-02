@@ -6,7 +6,7 @@
 
 ## WHY Log4a:
 
-**If you like, welcome start, fork or follow me.**
+**If you like, welcome to start/fork it or follow me.**
 
 Log4a uses file mapping memory(mmap) as a cache, that the integrity of the log can be guaranteed without sacrificing performance.
 The log will be first written to file mapping memory, based on the mmap feature, even if the user kill the process, 
