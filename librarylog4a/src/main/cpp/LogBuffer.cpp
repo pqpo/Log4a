@@ -14,6 +14,11 @@ LogBuffer::LogBuffer(char *ptr, size_t buffer_size):
         if(logHeader.getIsCompress()) {
             initCompress(true);
         }
+        char* log_path = getLogPath();
+        if(log_path != nullptr) {
+            openSetLogFile(log_path);
+            delete[] log_path;
+        }
     }
     memset(&zStream, 0, sizeof(zStream));
 }
@@ -60,13 +65,24 @@ size_t LogBuffer::append(const char *log, size_t len) {
     return writeSize;
 }
 
+void LogBuffer::setAsyncFileFlush(AsyncFileFlush *_fileFlush) {
+    fileFlush = _fileFlush;
+}
+
+void LogBuffer::async_flush() {
+    async_flush(fileFlush);
+}
+
 void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
+    if(fileFlush == nullptr) {
+        return;
+    }
     std::lock_guard<std::recursive_mutex> lck_clear(log_mtx);
     if (length() > 0) {
         if (is_compress && Z_NULL != zStream.state) {
             deflateEnd(&zStream);
         }
-        FlushBuffer* flushBuffer = new FlushBuffer();
+        FlushBuffer* flushBuffer = new FlushBuffer(log_file);
         flushBuffer->write(data_ptr, length());
         clear();
         fileFlush->async_flush(flushBuffer);
@@ -90,6 +106,9 @@ void LogBuffer::release() {
     } else {
         delete[] buffer_ptr;
     }
+    if(log_file != nullptr) {
+        fclose(log_file);
+    }
 }
 
 size_t LogBuffer::emptySize() {
@@ -112,6 +131,8 @@ void LogBuffer::initData(char *log_path, size_t log_path_len, bool is_compress) 
 
     data_ptr = (char *) logHeader.ptr();
     write_ptr = (char *) logHeader.write_ptr();
+
+    openSetLogFile(log_path);
 }
 
 char *LogBuffer::getLogPath() {
@@ -127,6 +148,24 @@ bool LogBuffer::initCompress(bool compress) {
         return Z_OK == deflateInit2(&zStream, Z_BEST_COMPRESSION, Z_DEFLATED, -MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY);
     }
     return false;
+}
+
+bool LogBuffer::openSetLogFile(const char *log_path) {
+    if (log_path != nullptr) {
+        FILE* _file_log = fopen(log_path, "ab+");
+        if(_file_log != NULL) {
+            log_file = _file_log;
+            return true;
+        }
+    }
+    return false;
+}
+
+void LogBuffer::changeLogPath(char *log_path) {
+    if(log_file != nullptr) {
+        async_flush();
+    }
+    initData(log_path, strlen(log_path), is_compress);
 }
 
 

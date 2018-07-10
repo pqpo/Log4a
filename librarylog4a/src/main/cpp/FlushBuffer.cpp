@@ -3,7 +3,7 @@
 //
 #include <FlushBuffer.h>
 
-FlushBuffer::FlushBuffer(size_t size) : capacity(size) {}
+FlushBuffer::FlushBuffer(FILE* log_file, size_t size) : capacity(size), log_file(log_file) {}
 
 FlushBuffer::~FlushBuffer() {
     if (data_ptr != nullptr) {
@@ -56,6 +56,10 @@ void FlushBuffer::reset() {
         memset(data_ptr, 0, capacity);
         write_ptr = data_ptr;
     }
+}
+
+FILE *FlushBuffer::logFile() {
+    return log_file;
 }
 
 

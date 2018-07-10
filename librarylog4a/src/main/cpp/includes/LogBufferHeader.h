@@ -36,6 +36,8 @@ namespace log_header{
         bool getIsCompress();
         bool isAvailable();
 
+        static size_t calculateHeaderLen(size_t log_path_len);
+
     private:
         char* data_ptr;
         size_t  data_size;

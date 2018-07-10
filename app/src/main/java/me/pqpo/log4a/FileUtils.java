@@ -11,9 +11,9 @@ import java.io.File;
 public class FileUtils {
 
     public static File getLogDir(Context context) {
-        File log = context.getExternalFilesDir("log");
+        File log = context.getExternalFilesDir("logs");
         if (log == null) {
-            log = new File(context.getFilesDir(), "log");
+            log = new File(context.getFilesDir(), "logs");
         }
         if (!log.exists()) {
             log.mkdir();

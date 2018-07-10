@@ -1,5 +1,9 @@
 ## CHANGE LOG
 
+### Version 1.4.0
+
+- Support modifying the log file path in runtime
+
 ### Version 1.3.0
 
 - Support log file compression

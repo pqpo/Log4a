@@ -18,23 +18,26 @@ static jlong initNative(JNIEnv *env, jclass type, jstring buffer_path_,
            jint capacity, jstring log_path_, jboolean compress_) {
     const char *buffer_path = env->GetStringUTFChars(buffer_path_, 0);
     const char *log_path = env->GetStringUTFChars(log_path_, 0);
-    const size_t buffer_size = static_cast<size_t>(capacity);
+    size_t buffer_size = static_cast<size_t>(capacity);
     int buffer_fd = open(buffer_path, O_RDWR|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     // buffer 的第一个字节会用于存储日志路径名称长度，后面紧跟日志路径，之后才是日志信息
     if (fileFlush == nullptr) {
-        fileFlush = new AsyncFileFlush(log_fd);
+        fileFlush = new AsyncFileFlush();
     }
+    // 加上头占用的大小
+    buffer_size = buffer_size + LogBufferHeader::calculateHeaderLen(strlen(log_path));
     char *buffer_ptr = openMMap(buffer_fd, buffer_size);
     bool map_buffer = true;
     //如果打开 mmap 失败，则降级使用内存缓存
     if(buffer_ptr == nullptr) {
-        buffer_ptr = new char[capacity];
+        buffer_ptr = new char[buffer_size];
         map_buffer = false;
     }
     env->ReleaseStringUTFChars(buffer_path_, buffer_path);
     env->ReleaseStringUTFChars(log_path_, log_path);
+
     LogBuffer* logBuffer = new LogBuffer(buffer_ptr, buffer_size);
+    logBuffer->setAsyncFileFlush(fileFlush);
     //将buffer内的数据清0， 并写入日志文件路径
     logBuffer->initData((char *) log_path, strlen(log_path), compress_);
     logBuffer->map_buffer = map_buffer;
@@ -67,15 +70,7 @@ static void writeDirtyLogToFile(int buffer_fd) {
                 LogBuffer tmp(buffer_ptr_tmp, buffered_size);
                 size_t data_size = tmp.length();
                 if (data_size > 0) {
-                    char* log_path = tmp.getLogPath();
-                    if (log_path != nullptr) {
-                        int log_fd = open(log_path, O_RDWR|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-                        if(log_fd != -1) {
-                            AsyncFileFlush tmpFlush(log_fd);
-                            tmp.async_flush(&tmpFlush);
-                        }
-                        delete[] log_path;
-                    }
+                    tmp.async_flush(fileFlush);
                 }
             }
         }
@@ -105,6 +100,14 @@ static void releaseNative(JNIEnv *env, jobject instance, jlong ptr) {
     fileFlush = nullptr;
 }
 
+static void changeLogPathNative(JNIEnv *env, jobject instance, jlong ptr,
+                                jstring logFilePath) {
+    const char *log_path = env->GetStringUTFChars(logFilePath, 0);
+    LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
+    logBuffer->changeLogPath(const_cast<char *>(log_path));
+    env->ReleaseStringUTFChars(logFilePath, log_path);
+}
+
 static void  flushAsyncNative(JNIEnv *env, jobject instance, jlong ptr) {
     LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
     logBuffer->async_flush(fileFlush);
@@ -128,6 +131,12 @@ static JNINativeMethod gMethods[] = {
                 "flushAsyncNative",
                 "(J)V",
                 (void*)flushAsyncNative
+        },
+
+        {
+                "changeLogPathNative",
+                "(JLjava/lang/String;)V",
+                (void*)changeLogPathNative
         },
 
         {

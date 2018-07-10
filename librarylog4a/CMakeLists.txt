@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.4.1)
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
-
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI})
 aux_source_directory(src/main/cpp/ DIR_LIB_SOURCE)
 add_library (log4a-lib SHARED ${DIR_LIB_SOURCE})
 include_directories(src/main/cpp/includes)

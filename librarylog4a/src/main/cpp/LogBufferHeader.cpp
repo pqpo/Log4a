@@ -1,5 +1,5 @@
 //
-// Created by admin on 2018/2/10.
+// Created by pqpo on 2018/2/10.
 //
 
 #include <ctime>
@@ -35,8 +35,8 @@ Header* LogBufferHeader::getHeader() {
         size_t log_path_len = 0;
         memcpy(&log_path_len, data_ptr + sizeof(char) + sizeof(size_t), sizeof(size_t));
         header->log_path_len = log_path_len;
-        char *log_path = new char[log_path_len];
-        memset(log_path, 0, log_path_len);
+        char *log_path = new char[log_path_len + 1];
+        memset(log_path, 0, log_path_len + 1);
         memcpy(log_path, data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t), log_path_len);
         header->log_path = log_path;
         char isCompress = (data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t) + log_path_len)[0];
@@ -49,7 +49,7 @@ size_t LogBufferHeader::getHeaderLen() {
     if (isAvailable()) {
         size_t log_path_len = 0;
         memcpy(&log_path_len, data_ptr + sizeof(char) + sizeof(size_t), sizeof(size_t));
-        return (sizeof(char) + sizeof(size_t) + sizeof(size_t) + log_path_len + sizeof(char));
+        return calculateHeaderLen(log_path_len);
     }
     return 0;
 }
@@ -101,8 +101,8 @@ char *LogBufferHeader::getLogPath() {
     if (isAvailable()) {
         size_t log_path_len = getLogPathLen();
         if (log_path_len > 0) {
-            char *log_path = new char[log_path_len];
-            memset(log_path, 0, log_path_len);
+            char *log_path = new char[log_path_len + 1];
+            memset(log_path, 0, log_path_len + 1);
             memcpy(log_path, data_ptr + sizeof(char) + sizeof(size_t) + sizeof(size_t), log_path_len);
             return log_path;
         }
@@ -127,6 +127,12 @@ bool LogBufferHeader::getIsCompress() {
     }
     return false;
 }
+
+size_t LogBufferHeader::calculateHeaderLen(size_t log_path_len) {
+    return sizeof(char) + sizeof(size_t) + sizeof(size_t) + log_path_len + sizeof(char);
+}
+
+
 
 
 
