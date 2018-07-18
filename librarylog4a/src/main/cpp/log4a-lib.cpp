@@ -67,10 +67,12 @@ static void writeDirtyLogToFile(int buffer_fd) {
         if(buffered_size > 0) {
             char *buffer_ptr_tmp = (char *) mmap(0, buffered_size, PROT_WRITE | PROT_READ, MAP_SHARED, buffer_fd, 0);
             if (buffer_ptr_tmp != MAP_FAILED) {
-                LogBuffer tmp(buffer_ptr_tmp, buffered_size);
-                size_t data_size = tmp.length();
+                LogBuffer *tmp = new LogBuffer(buffer_ptr_tmp, buffered_size);
+                size_t data_size = tmp -> length();
                 if (data_size > 0) {
-                    tmp.async_flush(fileFlush);
+                    tmp -> async_flush(fileFlush, tmp);
+                } else {
+                    delete tmp;
                 }
             }
         }
@@ -92,8 +94,7 @@ static void writeNative(JNIEnv *env, jobject instance, jlong ptr,
 
 static void releaseNative(JNIEnv *env, jobject instance, jlong ptr) {
     LogBuffer* logBuffer = reinterpret_cast<LogBuffer*>(ptr);
-    logBuffer->async_flush(fileFlush);
-    delete logBuffer;
+    logBuffer->async_flush(fileFlush, logBuffer);
     if (fileFlush != nullptr) {
         delete fileFlush;
     }

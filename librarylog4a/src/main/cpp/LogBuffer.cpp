@@ -74,7 +74,14 @@ void LogBuffer::async_flush() {
 }
 
 void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
+    async_flush(fileFlush, nullptr);
+}
+
+void LogBuffer::async_flush(AsyncFileFlush *fileFlush, void *releaseThis) {
     if(fileFlush == nullptr) {
+        if (releaseThis != nullptr) {
+            delete releaseThis;
+        }
         return;
     }
     std::lock_guard<std::recursive_mutex> lck_clear(log_mtx);
@@ -84,8 +91,11 @@ void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
         }
         FlushBuffer* flushBuffer = new FlushBuffer(log_file);
         flushBuffer->write(data_ptr, length());
+        flushBuffer->releaseThis(releaseThis);
         clear();
         fileFlush->async_flush(flushBuffer);
+    } else if (releaseThis != nullptr) {
+        delete releaseThis;
     }
 }
 

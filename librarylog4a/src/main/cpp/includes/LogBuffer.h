@@ -34,6 +34,7 @@ public:
     void setAsyncFileFlush(AsyncFileFlush *fileFlush);
     void async_flush();
     void async_flush(AsyncFileFlush *fileFlush);
+    void async_flush(AsyncFileFlush *fileFlush, void *releaseThis);
     void changeLogPath(char *log_path);
 
 public:

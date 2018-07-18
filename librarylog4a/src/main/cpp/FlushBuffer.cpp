@@ -9,6 +9,9 @@ FlushBuffer::~FlushBuffer() {
     if (data_ptr != nullptr) {
         delete[] data_ptr;
     }
+    if (release != nullptr) {
+        delete release;
+    }
 }
 
 size_t FlushBuffer::length() {
@@ -60,6 +63,10 @@ void FlushBuffer::reset() {
 
 FILE *FlushBuffer::logFile() {
     return log_file;
+}
+
+void FlushBuffer::releaseThis(void *release) {
+    this->release = release;
 }
 
 

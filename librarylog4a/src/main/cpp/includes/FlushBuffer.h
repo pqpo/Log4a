@@ -21,9 +21,11 @@ class FlushBuffer {
         void* ptr();
         FILE* logFile();
 
-    private:
-        FILE* log_file = nullptr;
+    void releaseThis(void *release);
 
+private:
+        FILE* log_file = nullptr;
+        void* release = nullptr;
         char* data_ptr = nullptr;
         char* write_ptr = nullptr;
         size_t capacity;
