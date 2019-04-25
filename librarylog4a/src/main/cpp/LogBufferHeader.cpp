@@ -47,9 +47,7 @@ Header* LogBufferHeader::getHeader() {
 
 size_t LogBufferHeader::getHeaderLen() {
     if (isAvailable()) {
-        size_t log_path_len = 0;
-        memcpy(&log_path_len, data_ptr + sizeof(char) + sizeof(size_t), sizeof(size_t));
-        return calculateHeaderLen(log_path_len);
+        return calculateHeaderLen(getLogPathLen());
     }
     return 0;
 }
@@ -83,6 +81,10 @@ size_t LogBufferHeader::getLogLen() {
     if (isAvailable()) {
         size_t log_len = 0;
         memcpy(&log_len, data_ptr + sizeof(char), sizeof(size_t));
+        // log长度总是大于 0 并小于 buffer_size 减去 header 长度的
+        if (log_len < 0 || log_len > (data_size - getHeaderLen())) {
+            log_len = 0;
+        }
         return log_len;
     }
     return 0;
@@ -92,6 +94,10 @@ size_t LogBufferHeader::getLogPathLen() {
     if (isAvailable()) {
         size_t log_path_len = 0;
         memcpy(&log_path_len, data_ptr + sizeof(char) + sizeof(size_t), sizeof(size_t));
+        // logpath 的长度不能大于整个buffer 减去header 中其它数据的长度
+        if (log_path_len < 0 || log_path_len > data_size - calculateHeaderLen(0)) {
+            log_path_len = 0;
+        }
         return log_path_len;
     }
     return 0;
