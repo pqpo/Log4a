@@ -64,7 +64,8 @@ static void writeDirtyLogToFile(int buffer_fd) {
     struct stat fileInfo;
     if(fstat(buffer_fd, &fileInfo) >= 0) {
         size_t buffered_size = static_cast<size_t>(fileInfo.st_size);
-        if(buffered_size > 0) {
+        // buffer_size 必须是大于文件头长度的，否则会导致下标溢出
+        if(buffered_size > LogBufferHeader::calculateHeaderLen(0)) {
             char *buffer_ptr_tmp = (char *) mmap(0, buffered_size, PROT_WRITE | PROT_READ, MAP_SHARED, buffer_fd, 0);
             if (buffer_ptr_tmp != MAP_FAILED) {
                 LogBuffer *tmp = new LogBuffer(buffer_ptr_tmp, buffered_size);
