@@ -77,7 +77,7 @@ void LogBuffer::async_flush(AsyncFileFlush *fileFlush) {
     async_flush(fileFlush, nullptr);
 }
 
-void LogBuffer::async_flush(AsyncFileFlush *fileFlush, void *releaseThis) {
+void LogBuffer::async_flush(AsyncFileFlush *fileFlush, LogBuffer *releaseThis) {
     if(fileFlush == nullptr) {
         if (releaseThis != nullptr) {
             delete releaseThis;
