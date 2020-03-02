@@ -34,22 +34,8 @@ dependencies {
 }
 ```
 
-2. 设置并初始化Log4a:
-```java
-AndroidAppender.Builder androidBuild = new AndroidAppender.Builder();
-
-File log = FileUtils.getLogDir(context);
-String log_path = log.getAbsolutePath() + File.separator + "log.txt";
-FileAppender.Builder fileBuild = new FileAppender.Builder(context)
-                          .setLogFilePath(log_path);
-                          
-Logger logger = new Logger.Builder()
-          .enableAndroidAppender(androidBuild)
-          .enableFileAppender(fileBuild)
-          .create();
-          
-Log4a.setLogger(logger);
-```
+2. 设置并初始化Log4a:  
+https://github.com/pqpo/Log4a/blob/master/app/src/main/java/me/pqpo/log4a/LogInit.java
 
 3. 使用方式与 android.util.Log 完全一致：
 ```java
