@@ -40,24 +40,10 @@ dependencies {
 }
 ```
 
-2. Set and initialize Log4a::
-```java
-AndroidAppender.Builder androidBuild = new AndroidAppender.Builder();
+2. Set and initialize Log4a:  
+https://github.com/pqpo/Log4a/blob/master/app/src/main/java/me/pqpo/log4a/LogInit.java
 
-File log = FileUtils.getLogDir(context);
-String log_path = log.getAbsolutePath() + File.separator + "log.txt";
-FileAppender.Builder fileBuild = new FileAppender.Builder(context)
-                          .setLogFilePath(log_path);
-                          
-Logger logger = new Logger.Builder()
-          .enableAndroidAppender(androidBuild)
-          .enableFileAppender(fileBuild)
-          .create();
-          
-Log4a.setLogger(logger);
-```
-
-3. Use the same way as the android.util.Log：
+3. Use the same way as the android.util.Log: 
 ```java
 Log4a.i(TAG, "Hello，Log4a!");
 ```
